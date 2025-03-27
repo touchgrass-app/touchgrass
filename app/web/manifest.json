@@ -1,11 +1,11 @@
 {
-    "name": "touchgrass",
-    "short_name": "touchgrass",
+    "name": "TouchGrass",
+    "short_name": "TouchGrass",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#4CAF50",
+    "theme_color": "#4CAF50",
+    "description": "A habit tracking app that helps you stay connected with nature.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
