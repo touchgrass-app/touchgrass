@@ -1,6 +1,6 @@
 {
     "name": "TouchGrass",
-    "short_name": "TouchGrass",
+    "short_name": "touchgrass",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#4CAF50",
