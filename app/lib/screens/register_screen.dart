@@ -2,25 +2,26 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../utils/fade_route.dart';
 import 'home_screen.dart';
-import 'register_screen.dart';
+import 'login_screen.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _authService = AuthService();
   
-  String _usernameOrEmail = '';
+  String _username = '';
+  String _email = '';
   String _password = '';
   bool _isLoading = false;
   String? _error;
 
-  Future<void> _login() async {
+  Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
 
     _formKey.currentState!.save();
@@ -30,7 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      final user = await _authService.login(_usernameOrEmail, _password);
+      final user = await _authService.register(_username, _email, _password);
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -73,7 +74,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 24),
                     const Text(
-                      'Welcome to TouchGrass',
+                      'Create Account',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w600,
@@ -83,7 +84,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      'Track your habits, touch grass',
+                      'Join TouchGrass and start tracking',
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey,
@@ -102,7 +103,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           fontSize: 14,
                         ),
                         decoration: const InputDecoration(
-                          labelText: 'Username or Email',
+                          labelText: 'Username',
                           labelStyle: TextStyle(
                             color: Colors.grey,
                             fontSize: 14,
@@ -122,11 +123,57 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter your username or email';
+                            return 'Please enter a username';
+                          }
+                          if (value.length < 3) {
+                            return 'Username must be at least 3 characters';
                           }
                           return null;
                         },
-                        onSaved: (value) => _usernameOrEmail = value!,
+                        onSaved: (value) => _username = value!,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF242424),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: TextFormField(
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                        ),
+                        decoration: const InputDecoration(
+                          labelText: 'Email',
+                          labelStyle: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 14,
+                          ),
+                          border: OutlineInputBorder(
+                            borderSide: BorderSide.none,
+                          ),
+                          prefixIcon: Icon(
+                            Icons.email_outlined,
+                            color: Colors.grey,
+                            size: 20,
+                          ),
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                        ),
+                        keyboardType: TextInputType.emailAddress,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter an email';
+                          }
+                          if (!value.contains('@')) {
+                            return 'Please enter a valid email';
+                          }
+                          return null;
+                        },
+                        onSaved: (value) => _email = value!,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -162,7 +209,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         obscureText: true,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter your password';
+                            return 'Please enter a password';
+                          }
+                          if (value.length < 6) {
+                            return 'Password must be at least 6 characters';
                           }
                           return null;
                         },
@@ -190,7 +240,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(
                       height: 42,
                       child: ElevatedButton(
-                        onPressed: _isLoading ? null : _login,
+                        onPressed: _isLoading ? null : _register,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF4CAF50),
                           foregroundColor: Colors.white,
@@ -209,7 +259,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               )
                             : const Text(
-                                'Login',
+                                'Register',
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
@@ -222,14 +272,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: () {
                         Navigator.push(
                           context,
-                          FadeRoute(page: const RegisterScreen()),
+                          FadeRoute(page: const LoginScreen()),
                         );
                       },
                       style: TextButton.styleFrom(
                         foregroundColor: Colors.grey,
                       ),
                       child: const Text(
-                        'Don\'t have an account? Register',
+                        'Already have an account? Login',
                         style: TextStyle(fontSize: 12),
                       ),
                     ),

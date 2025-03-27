@@ -47,4 +47,12 @@ app.*.map.json
 
 # Environment files
 .env
-.env.*
+*.env
+
+# IDE specific
+.idea/
+.vscode/
+*.iml
+
+# Keep templates
+!*.template
