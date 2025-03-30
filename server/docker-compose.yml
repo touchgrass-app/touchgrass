@@ -1,0 +1,13 @@
+services:
+  touchgrass-server:
+    image: touchgrass-server
+    container_name: touchgrass-server
+    environment:
+      - MYSQL_PASSWORD=urmum # Required
+      - MYSQL_USER=touchgrass # Optional, default: touchgrass
+      - MYSQL_DATABASE=touchgrass # Optional, default: touchgrass
+      - MYSQL_HOST=localhost # Optional, default: localhost
+      - MYSQL_PORT=3306 # Optional, default: 3306
+      - SERVER_PORT=8080 # Optional, default: 8080
+    ports:
+      - 8080:8080

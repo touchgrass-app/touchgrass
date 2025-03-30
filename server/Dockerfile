@@ -8,6 +8,7 @@ RUN apt update \
  && apt install openjdk-17-jdk -y \
  && apt install mysql-server -y
 
+# Configure Java
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-arm64
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
