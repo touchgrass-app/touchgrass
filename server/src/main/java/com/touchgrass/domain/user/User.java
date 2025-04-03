@@ -1,51 +1,38 @@
-package com.touchgrass.server.user;
+package com.touchgrass.domain.user;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Entity
-@Table(name = "users",
-    uniqueConstraints = {
-        @UniqueConstraint(columnNames = "username"),
-        @UniqueConstraint(columnNames = "email")
-    })
+@Table(name = "users")
 public class User {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank
-    @Size(min = 3, max = 20)
-    @Column(nullable = false, unique = true)
+    @Column(unique = true, nullable = false)
     private String username;
 
-    @NotBlank
-    @Size(max = 50)
-    @Email
-    @Column(nullable = false, unique = true)
+    @Column(unique = true, nullable = false)
     private String email;
 
-    @NotBlank
     @Column(nullable = false)
-    private String password;  // Will be stored hashed
+    private String password;
 
-    @Column(name = "first_name")
-    @Size(max = 50)
+    @Column(name = "first_name", nullable = true)
     private String firstName;
 
-    @Column(name = "last_name")
-    @Size(max = 50)
+    @Column(name = "last_name", nullable = true)
     private String lastName;
+    
+    @Column(name = "date_of_birth", nullable = true)
+    private LocalDate dateOfBirth;
 
-    @Column(name = "is_admin", nullable = false)
-    private boolean isAdmin = false;
+    @Column(name = "is_admin")
+    private boolean isAdmin;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
@@ -54,32 +41,25 @@ public class User {
     @Column(name = "last_login")
     private LocalDateTime lastLogin;
 
-    // Default constructor
-    public User() {
+    // Domain methods
+    public void updateLastLogin() {
+        this.lastLogin = LocalDateTime.now();
     }
 
-    // Constructor with required fields
-    public User(String username, String email, String password) {
-        this.username = username;
-        this.email = email;
-        this.password = password;
-    }
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = createdAt;
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+    public void updateProfile(String firstName, String lastName, LocalDate dateOfBirth) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.dateOfBirth = dateOfBirth;
+        this.updatedAt = LocalDateTime.now();
     }
 
     // Getters and Setters
-
     public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getUsername() {
@@ -122,6 +102,14 @@ public class User {
         this.lastName = lastName;
     }
 
+    public LocalDate getDateOfBirth() {
+        return dateOfBirth;
+    }
+
+    public void setDateOfBirth(LocalDate dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
+    }
+
     public boolean isAdmin() {
         return isAdmin;
     }
@@ -134,8 +122,16 @@ public class User {
         return createdAt;
     }
 
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
     public LocalDateTime getLastLogin() {

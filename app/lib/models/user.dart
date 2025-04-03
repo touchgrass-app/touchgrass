@@ -1,21 +1,23 @@
 class User {
   final int id;
-  String username;
-  String email;
-  String? firstName;
-  String? lastName;
-  bool isAdmin;
-  DateTime createdAt;
-  DateTime updatedAt;
-  DateTime? lastLogin;
+  final String username;
+  final String email;
+  final String firstName;
+  final String lastName;
+  final DateTime? dateOfBirth;
+  final bool isAdmin;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? lastLogin;
 
   User({
     required this.id,
     required this.username,
     required this.email,
-    this.firstName,
-    this.lastName,
-    this.isAdmin = false,
+    required this.firstName,
+    required this.lastName,
+    this.dateOfBirth,
+    required this.isAdmin,
     required this.createdAt,
     required this.updatedAt,
     this.lastLogin,
@@ -28,7 +30,8 @@ class User {
       email: json['email'],
       firstName: json['firstName'],
       lastName: json['lastName'],
-      isAdmin: json['admin'] ?? false,
+      dateOfBirth: json['dateOfBirth'] != null ? DateTime.parse(json['dateOfBirth']) : null,
+      isAdmin: json['isAdmin'] ?? false,
       createdAt: DateTime.parse(json['createdAt']),
       updatedAt: DateTime.parse(json['updatedAt']),
       lastLogin: json['lastLogin'] != null ? DateTime.parse(json['lastLogin']) : null,
@@ -42,7 +45,8 @@ class User {
       'email': email,
       'firstName': firstName,
       'lastName': lastName,
-      'admin': isAdmin,
+      'dateOfBirth': dateOfBirth?.toIso8601String(),
+      'isAdmin': isAdmin,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
       'lastLogin': lastLogin?.toIso8601String(),

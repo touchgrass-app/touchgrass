@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import '../models/user.dart';
 import '../services/auth_service.dart';
 import '../utils/fade_route.dart';
 import 'home_screen.dart';
@@ -13,7 +17,17 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
+  final _dateOfBirthController = TextEditingController();
+  DateTime? _dateOfBirth;
   final _authService = AuthService();
+  bool _showPassword = false;
+  bool _showConfirmPassword = false;
   
   String _username = '';
   String _email = '';
@@ -21,32 +35,85 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isLoading = false;
   String? _error;
 
+  @override
+  void initState() {
+    super.initState();
+    _usernameController.addListener(_updateState);
+    _emailController.addListener(_updateState);
+    _passwordController.addListener(_updateState);
+    _confirmPasswordController.addListener(_updateState);
+    _firstNameController.addListener(_updateState);
+    _lastNameController.addListener(_updateState);
+  }
+
+  void _updateState() {
+    setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _usernameController.removeListener(_updateState);
+    _emailController.removeListener(_updateState);
+    _passwordController.removeListener(_updateState);
+    _confirmPasswordController.removeListener(_updateState);
+    _firstNameController.removeListener(_updateState);
+    _lastNameController.removeListener(_updateState);
+    _usernameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _dateOfBirthController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _dateOfBirth ?? DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null && picked != _dateOfBirth) {
+      setState(() {
+        _dateOfBirth = picked;
+      });
+    }
+  }
+
   Future<void> _register() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
 
-    _formKey.currentState!.save();
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+      try {
+        final user = await _authService.register(
+          _usernameController.text,
+          _emailController.text,
+          _passwordController.text,
+          firstName: _firstNameController.text.isEmpty ? null : _firstNameController.text,
+          lastName: _lastNameController.text.isEmpty ? null : _lastNameController.text,
+          dateOfBirth: _dateOfBirth?.toIso8601String(),
+        );
 
-    try {
-      final user = await _authService.register(_username, _email, _password);
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
+        if (!mounted) return;
+
+        Navigator.of(context).pushReplacement(
           FadeRoute(page: HomeScreen(user: user)),
         );
-      }
-    } catch (e) {
-      setState(() {
-        _error = e.toString();
-      });
-    } finally {
-      if (mounted) {
+      } catch (e) {
         setState(() {
-          _isLoading = false;
+          _error = e.toString();
         });
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
     }
   }
@@ -98,6 +165,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: TextFormField(
+                        controller: _usernameController,
                         style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 14,
@@ -120,6 +188,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             horizontal: 16,
                             vertical: 12,
                           ),
+                          floatingLabelBehavior: FloatingLabelBehavior.auto,
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -130,7 +199,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           }
                           return null;
                         },
-                        onSaved: (value) => _username = value!,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -140,6 +208,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: TextFormField(
+                        controller: _emailController,
                         style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 14,
@@ -162,6 +231,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             horizontal: 16,
                             vertical: 12,
                           ),
+                          floatingLabelBehavior: FloatingLabelBehavior.auto,
                         ),
                         keyboardType: TextInputType.emailAddress,
                         validator: (value) {
@@ -173,7 +243,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           }
                           return null;
                         },
-                        onSaved: (value) => _email = value!,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -183,30 +252,44 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: TextFormField(
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 14,
-                        ),
-                        decoration: const InputDecoration(
+                        controller: _passwordController,
+                        decoration: InputDecoration(
                           labelText: 'Password',
-                          labelStyle: TextStyle(
+                          labelStyle: const TextStyle(
                             color: Colors.grey,
                             fontSize: 14,
                           ),
-                          border: OutlineInputBorder(
+                          border: const OutlineInputBorder(
                             borderSide: BorderSide.none,
                           ),
-                          prefixIcon: Icon(
+                          prefixIcon: const Icon(
                             Icons.lock_outline,
                             color: Colors.grey,
                             size: 20,
                           ),
-                          contentPadding: EdgeInsets.symmetric(
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _showPassword ? Icons.visibility_off : Icons.visibility,
+                              color: Colors.grey,
+                              size: 20,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _showPassword = !_showPassword;
+                              });
+                            },
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16,
                             vertical: 12,
                           ),
+                          floatingLabelBehavior: FloatingLabelBehavior.auto,
                         ),
-                        obscureText: true,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                        ),
+                        obscureText: !_showPassword,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter a password';
@@ -216,7 +299,171 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           }
                           return null;
                         },
-                        onSaved: (value) => _password = value!,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF242424),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: TextFormField(
+                        controller: _confirmPasswordController,
+                        decoration: InputDecoration(
+                          labelText: 'Confirm Password',
+                          labelStyle: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 14,
+                          ),
+                          border: const OutlineInputBorder(
+                            borderSide: BorderSide.none,
+                          ),
+                          prefixIcon: const Icon(
+                            Icons.lock_outline,
+                            color: Colors.grey,
+                            size: 20,
+                          ),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _showConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                              color: Colors.grey,
+                              size: 20,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _showConfirmPassword = !_showConfirmPassword;
+                              });
+                            },
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          floatingLabelBehavior: FloatingLabelBehavior.auto,
+                        ),
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                        ),
+                        obscureText: !_showConfirmPassword,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please confirm your password';
+                          }
+                          if (value != _passwordController.text) {
+                            return 'Passwords do not match';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF242424),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: TextFormField(
+                        controller: _firstNameController,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                        ),
+                        decoration: const InputDecoration(
+                          labelText: 'First Name (Optional)',
+                          labelStyle: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 14,
+                          ),
+                          border: OutlineInputBorder(
+                            borderSide: BorderSide.none,
+                          ),
+                          prefixIcon: Icon(
+                            Icons.person_outline,
+                            color: Colors.grey,
+                            size: 20,
+                          ),
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          floatingLabelBehavior: FloatingLabelBehavior.auto,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF242424),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: TextFormField(
+                        controller: _lastNameController,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                        ),
+                        decoration: const InputDecoration(
+                          labelText: 'Last Name (Optional)',
+                          labelStyle: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 14,
+                          ),
+                          border: OutlineInputBorder(
+                            borderSide: BorderSide.none,
+                          ),
+                          prefixIcon: Icon(
+                            Icons.person_outline,
+                            color: Colors.grey,
+                            size: 20,
+                          ),
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          floatingLabelBehavior: FloatingLabelBehavior.auto,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF242424),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: TextFormField(
+                          controller: TextEditingController(
+                            text: _dateOfBirth == null ? '' : '${_dateOfBirth!.day}/${_dateOfBirth!.month}/${_dateOfBirth!.year}',
+                          ),
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 14,
+                          ),
+                          decoration: const InputDecoration(
+                            labelText: 'Date of Birth (Optional)',
+                            labelStyle: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 14,
+                            ),
+                            border: OutlineInputBorder(
+                              borderSide: BorderSide.none,
+                            ),
+                            prefixIcon: Icon(
+                              Icons.calendar_today,
+                              color: Colors.grey,
+                              size: 20,
+                            ),
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            floatingLabelBehavior: FloatingLabelBehavior.auto,
+                          ),
+                          readOnly: true,
+                          onTap: () => _selectDate(context),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 24),

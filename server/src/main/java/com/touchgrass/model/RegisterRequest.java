@@ -1,4 +1,4 @@
-package com.touchgrass.server.user;
+package com.touchgrass.model;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

@@ -23,7 +23,7 @@ class AuthService {
     }
   }
 
-  Future<User> register(String username, String email, String password) async {
+  Future<User> register(String username, String email, String password, {String? firstName, String? lastName, String? dateOfBirth}) async {
     final response = await http.post(
       Uri.parse('$baseUrl/users/register'),
       headers: {'Content-Type': 'application/json'},
@@ -31,6 +31,9 @@ class AuthService {
         'username': username,
         'email': email,
         'password': password,
+        'firstName': firstName,
+        'lastName': lastName,
+        'dateOfBirth': dateOfBirth,
       }),
     );
 
