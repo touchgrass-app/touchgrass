@@ -2,8 +2,8 @@ class User {
   final int id;
   final String username;
   final String email;
-  final String firstName;
-  final String lastName;
+  final String? firstName;
+  final String? lastName;
   final DateTime? dateOfBirth;
   final bool isAdmin;
   final DateTime createdAt;
@@ -14,8 +14,8 @@ class User {
     required this.id,
     required this.username,
     required this.email,
-    required this.firstName,
-    required this.lastName,
+    this.firstName,
+    this.lastName,
     this.dateOfBirth,
     required this.isAdmin,
     required this.createdAt,
@@ -25,16 +25,20 @@ class User {
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['id'],
-      username: json['username'],
-      email: json['email'],
-      firstName: json['firstName'],
-      lastName: json['lastName'],
-      dateOfBirth: json['dateOfBirth'] != null ? DateTime.parse(json['dateOfBirth']) : null,
-      isAdmin: json['isAdmin'] ?? false,
-      createdAt: DateTime.parse(json['createdAt']),
-      updatedAt: DateTime.parse(json['updatedAt']),
-      lastLogin: json['lastLogin'] != null ? DateTime.parse(json['lastLogin']) : null,
+      id: json['id'] as int,
+      username: json['username'] as String,
+      email: json['email'] as String,
+      firstName: json['firstName'] as String?,
+      lastName: json['lastName'] as String?,
+      dateOfBirth: json['dateOfBirth'] != null
+          ? DateTime.parse(json['dateOfBirth'] as String)
+          : null,
+      isAdmin: json['isAdmin'] as bool? ?? false,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      lastLogin: json['lastLogin'] != null
+          ? DateTime.parse(json['lastLogin'] as String)
+          : null,
     );
   }
 
@@ -52,4 +56,4 @@ class User {
       'lastLogin': lastLogin?.toIso8601String(),
     };
   }
-} 
+}

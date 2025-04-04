@@ -14,7 +14,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _authService = AuthService();
-  
+
   String _usernameOrEmail = '';
   String _password = '';
   bool _isLoading = false;
@@ -174,7 +174,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.red.withOpacity(0.1),
+                          color: const Color.fromRGBO(244, 67, 54, 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
@@ -205,7 +205,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 width: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white70),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white70),
                                 ),
                               )
                             : const Text(
@@ -242,4 +243,4 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
-} 
+}

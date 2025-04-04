@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../models/user.dart';
+import '../utils/fade_route.dart';
+import 'login_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   final User user;
@@ -14,7 +17,11 @@ class HomeScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+            onPressed: () {
+              Navigator.of(context).pushReplacement(
+                FadeRoute(page: const LoginScreen()),
+              );
+            },
           ),
         ],
       ),
@@ -24,7 +31,7 @@ class HomeScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Welcome, ${user.username}!',
+              'Welcome, ${user.firstName ?? user.username}!',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
             const SizedBox(height: 16),
@@ -38,13 +45,21 @@ class HomeScreen extends StatelessWidget {
                       'Profile Information',
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
-                    const SizedBox(height: 8),
-                    Text('Email: ${user.email}'),
-                    if (user.firstName != null) Text('First Name: ${user.firstName}'),
-                    if (user.lastName != null) Text('Last Name: ${user.lastName}'),
-                    Text('Member since: ${user.createdAt.toString().split('T')[0]}'),
+                    const SizedBox(height: 16),
+                    _buildInfoRow('Email', user.email),
+                    if (user.firstName != null)
+                      _buildInfoRow('First Name', user.firstName!),
+                    if (user.lastName != null)
+                      _buildInfoRow('Last Name', user.lastName!),
+                    _buildInfoRow(
+                      'Member since',
+                      DateFormat('MMM d, yyyy').format(user.createdAt),
+                    ),
                     if (user.lastLogin != null)
-                      Text('Last login: ${user.lastLogin.toString().split('T')[0]}'),
+                      _buildInfoRow(
+                        'Last login',
+                        DateFormat('MMM d, yyyy').format(user.lastLogin!),
+                      ),
                   ],
                 ),
               ),
@@ -55,18 +70,49 @@ class HomeScreen extends StatelessWidget {
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 16),
-            const Center(
-              child: Text('No habits yet. Start by creating one!'),
+            const Expanded(
+              child: Center(
+                child: Text('No habits yet. Start by creating one!'),
+              ),
             ),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // TODO: Implement habit creation
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Habit creation coming soon!'),
+              duration: Duration(seconds: 2),
+            ),
+          );
         },
         child: const Icon(Icons.add),
       ),
     );
   }
-} 
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(
+              '$label:',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.grey,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(value),
+          ),
+        ],
+      ),
+    );
+  }
+}
