@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import '../models/user.dart';
+
 import '../services/auth_service.dart';
 import '../utils/fade_route.dart';
 import 'home_screen.dart';
@@ -28,10 +25,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _authService = AuthService();
   bool _showPassword = false;
   bool _showConfirmPassword = false;
-  
-  String _username = '';
-  String _email = '';
-  String _password = '';
   bool _isLoading = false;
   String? _error;
 
@@ -94,8 +87,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
           _usernameController.text,
           _emailController.text,
           _passwordController.text,
-          firstName: _firstNameController.text.isEmpty ? null : _firstNameController.text,
-          lastName: _lastNameController.text.isEmpty ? null : _lastNameController.text,
+          firstName: _firstNameController.text.isEmpty
+              ? null
+              : _firstNameController.text,
+          lastName: _lastNameController.text.isEmpty
+              ? null
+              : _lastNameController.text,
           dateOfBirth: _dateOfBirth?.toIso8601String(),
         );
 
@@ -269,7 +266,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           suffixIcon: IconButton(
                             icon: Icon(
-                              _showPassword ? Icons.visibility_off : Icons.visibility,
+                              _showPassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
                               color: Colors.grey,
                               size: 20,
                             ),
@@ -325,7 +324,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           suffixIcon: IconButton(
                             icon: Icon(
-                              _showConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                              _showConfirmPassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
                               color: Colors.grey,
                               size: 20,
                             ),
@@ -435,7 +436,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         cursor: SystemMouseCursors.click,
                         child: TextFormField(
                           controller: TextEditingController(
-                            text: _dateOfBirth == null ? '' : '${_dateOfBirth!.day}/${_dateOfBirth!.month}/${_dateOfBirth!.year}',
+                            text: _dateOfBirth == null
+                                ? ''
+                                : '${_dateOfBirth!.day}/${_dateOfBirth!.month}/${_dateOfBirth!.year}',
                           ),
                           style: const TextStyle(
                             color: Colors.white70,
@@ -471,7 +474,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.red.withOpacity(0.1),
+                          color: const Color.fromRGBO(244, 67, 54, 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
@@ -502,7 +505,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 width: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white70),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white70),
                                 ),
                               )
                             : const Text(
@@ -539,4 +543,4 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
     );
   }
-} 
+}
