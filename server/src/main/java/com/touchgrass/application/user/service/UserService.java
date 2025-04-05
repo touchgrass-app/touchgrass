@@ -1,6 +1,6 @@
 package com.touchgrass.application.user;
 
-import com.touchgrass.application.user.dto.RegisterUserCommand;
+import com.touchgrass.application.user.dto.RegisterRequest;
 import com.touchgrass.domain.user.User;
 import com.touchgrass.domain.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,22 +22,22 @@ public class UserService {
     }
 
     @Transactional
-    public User registerUser(RegisterUserCommand command) {
+    public User registerUser(RegisterRequest request) {
         // Check if username or email already exists
-        if (userRepository.existsByUsername(command.getUsername())) {
+        if (userRepository.existsByUsername(request.getUsername())) {
             throw new IllegalArgumentException("Username already exists");
         }
-        if (userRepository.existsByEmail(command.getEmail())) {
+        if (userRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("Email already exists");
         }
 
         User user = new User();
-        user.setUsername(command.getUsername());
-        user.setEmail(command.getEmail());
-        user.setPassword(command.getPassword()); // TODO: Hash password
-        user.setFirstName(command.getFirstName());
-        user.setLastName(command.getLastName());
-        user.setDateOfBirth(command.getDateOfBirth());
+        user.setUsername(request.getUsername());
+        user.setEmail(request.getEmail());
+        user.setPassword(request.getPassword()); // TODO: Hash password
+        user.setFirstName(request.getFirstName());
+        user.setLastName(request.getLastName());
+        user.setDateOfBirth(request.getDateOfBirth());
         user.setAdmin(false);
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());

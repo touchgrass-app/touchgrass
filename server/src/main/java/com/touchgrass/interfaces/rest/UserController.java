@@ -1,7 +1,7 @@
 package com.touchgrass.interfaces.rest;
 
 import com.touchgrass.application.user.UserService;
-import com.touchgrass.application.user.dto.RegisterUserCommand;
+import com.touchgrass.application.user.dto.RegisterRequest;
 import com.touchgrass.domain.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -36,8 +36,8 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<User> registerUser(@RequestBody RegisterUserCommand command) {
-        User user = userService.registerUser(command);
+    public ResponseEntity<User> registerUser(@RequestBody RegisterRequest request) {
+        User user = userService.registerUser(request);
         return ResponseEntity.status(201).body(user);
     }
 

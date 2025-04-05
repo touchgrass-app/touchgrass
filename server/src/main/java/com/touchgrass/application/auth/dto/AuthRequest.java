@@ -1,6 +1,6 @@
-package com.touchgrass.model;
+package com.touchgrass.application.auth.dto;
 
-public class LoginRequest {
+public class AuthRequest {
     private String username;
     private String password;
 

@@ -1,10 +1,10 @@
-package com.touchgrass.model;
+package com.touchgrass.application.auth.dto;
 
-public class LoginResponse {
+public class AuthResponse {
     private String message;
     private boolean success;
 
-    public LoginResponse(String message, boolean success) {
+    public AuthResponse(String message, boolean success) {
         this.message = message;
         this.success = success;
     }
