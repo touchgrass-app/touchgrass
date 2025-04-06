@@ -1,27 +1,27 @@
 package com.touchgrass.application.auth.dto;
 
 public class AuthResponse {
-    private String message;
-    private boolean success;
+    private String token;
+    private String username;
 
-    public AuthResponse(String message, boolean success) {
-        this.message = message;
-        this.success = success;
+    public AuthResponse(String token, String username) {
+        this.token = token;
+        this.username = username;
     }
 
-    public String getMessage() {
-        return message;
+    public String getToken() {
+        return token;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public void setToken(String token) {
+        this.token = token;
     }
 
-    public boolean isSuccess() {
-        return success;
+    public String getUsername() {
+        return username;
     }
 
-    public void setSuccess(boolean success) {
-        this.success = success;
+    public void setUsername(String username) {
+        this.username = username;
     }
 } 

@@ -1,4 +1,4 @@
-package com.touchgrass.application.user.dto;
+package com.touchgrass.application.auth.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

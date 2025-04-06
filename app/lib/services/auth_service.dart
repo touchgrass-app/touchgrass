@@ -7,7 +7,7 @@ class AuthService {
 
   Future<User> login(String usernameOrEmail, String password) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/users/login'),
+      Uri.parse('$baseUrl/auth/login'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'usernameOrEmail': usernameOrEmail,
@@ -19,13 +19,14 @@ class AuthService {
       return User.fromJson(jsonDecode(response.body));
     } else {
       final error = jsonDecode(response.body);
-      throw Exception(error['error'] ?? 'Failed to login');
+      throw Exception(error['message'] ?? 'Failed to login');
     }
   }
 
-  Future<User> register(String username, String email, String password, {String? firstName, String? lastName, String? dateOfBirth}) async {
+  Future<User> register(String username, String email, String password,
+      {String? firstName, String? lastName, String? dateOfBirth}) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/users/register'),
+      Uri.parse('$baseUrl/auth/register'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'username': username,
@@ -41,7 +42,7 @@ class AuthService {
       return User.fromJson(jsonDecode(response.body));
     } else {
       final error = jsonDecode(response.body);
-      throw Exception(error['error'] ?? 'Failed to register');
+      throw Exception(error['message'] ?? 'Failed to register');
     }
   }
 
@@ -54,4 +55,4 @@ class AuthService {
       throw Exception('Failed to load user');
     }
   }
-} 
+}
