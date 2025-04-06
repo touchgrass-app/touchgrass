@@ -41,8 +41,8 @@ public class User {
     @Column(name = "last_login")
     private LocalDateTime lastLogin;
 
-    @Column(name = "profile_pic", nullable = true)
-    private String profilePic;
+    @Column(name = "avatar_url", nullable = true)
+    private String avatarUrl;
 
     // Domain methods
     public void updateLastLogin() {
@@ -145,11 +145,11 @@ public class User {
         this.lastLogin = lastLogin;
     }
 
-    public String getProfilePic() {
-        return profilePic;
+    public String getavatarUrl() {
+        return avatarUrl;
     }
 
-    public void setProfilePic(String profilePic) {
-        this.profilePic = profilePic;
+    public void setavatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
     }
 }
