@@ -9,104 +9,74 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-import javax.crypto.SecretKey;
+import jakarta.annotation.PostConstruct;
 import java.nio.charset.StandardCharsets;
+import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 @Component
 public class JwtTokenProvider {
 
     @Value("${jwt.secret}")
     private String jwtSecret;
-    
+
     @Value("${jwt.expiration}")
-    private long jwtExpiration;
+    private long jwtExpirationInMs;
 
-    private SecretKey signingKey;
+    private Key signingKey;
 
-    public JwtTokenProvider() {
-        this.signingKey = Keys.secretKeyFor(SignatureAlgorithm.HS512);
+    @PostConstruct
+    public void init() {
+        byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
+        this.signingKey = Keys.hmacShaKeyFor(keyBytes);
     }
 
-    // Getters and setters
-    public String getJwtSecret() {
-        return jwtSecret;
-    }
-
-    public void setJwtSecret(String jwtSecret) {
-        this.jwtSecret = jwtSecret;
-    }
-
-    public long getJwtExpiration() {
-        return jwtExpiration;
-    }
-
-    public void setJwtExpiration(long jwtExpiration) {
-        this.jwtExpiration = jwtExpiration;
-    }
-
-    /**
-     * Generate a JWT token for the authenticated user
-     * @param authentication The authentication object containing user details
-     * @return The generated JWT token
-     */
     public String generateToken(Authentication authentication) {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         Map<String, Object> claims = new HashMap<>();
-        
-        Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + jwtExpiration);
-        
+        return createToken(claims, userDetails.getUsername());
+    }
+
+    private String createToken(Map<String, Object> claims, String subject) {
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(userDetails.getUsername())
-                .setIssuedAt(now)
-                .setExpiration(expiryDate)
+                .setSubject(subject)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationInMs))
                 .signWith(signingKey, SignatureAlgorithm.HS512)
                 .compact();
     }
 
-    /**
-     * Extract the username from a JWT token
-     * @param token The JWT token
-     * @return The username extracted from the token
-     */
-    public String getUsernameFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(signingKey)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
-        
-        return claims.getSubject();
-    }
-
-    /**
-     * Validate a JWT token for a specific user
-     * @param token The JWT token
-     * @param userDetails The user details to validate against
-     * @return True if the token is valid, false otherwise
-     */
     public Boolean validateToken(String token, UserDetails userDetails) {
-        final String username = getUsernameFromToken(token);
+        final String username = extractUsername(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
-    
-    /**
-     * Check if a JWT token is expired
-     * @param token The JWT token
-     * @return True if the token is expired, false otherwise
-     */
-    private Boolean isTokenExpired(String token) {
-        Claims claims = Jwts.parserBuilder()
+
+    public String extractUsername(String token) {
+        return extractClaim(token, Claims::getSubject);
+    }
+
+    public Date extractExpiration(String token) {
+        return extractClaim(token, Claims::getExpiration);
+    }
+
+    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = extractAllClaims(token);
+        return claimsResolver.apply(claims);
+    }
+
+    private Claims extractAllClaims(String token) {
+        return Jwts.parserBuilder()
                 .setSigningKey(signingKey)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
-        
-        final Date expiration = claims.getExpiration();
-        return expiration.before(new Date());
+    }
+
+    private Boolean isTokenExpired(String token) {
+        return extractExpiration(token).before(new Date());
     }
 }
