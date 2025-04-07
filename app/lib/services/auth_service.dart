@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
+import '../config/api_config.dart';
 
 class AuthResponse {
   final String token;
@@ -18,7 +19,6 @@ class AuthResponse {
 }
 
 class AuthService {
-  static const String baseUrl = 'http://localhost:8080/api';
   static const String _tokenKey = 'auth_token';
 
   T _handleResponse<T>(http.Response response,
@@ -51,7 +51,7 @@ class AuthService {
 
   Future<AuthResponse> login(String username, String password) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/auth/login'),
+      Uri.parse(ApiConfig.login),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'username': username,
@@ -71,7 +71,7 @@ class AuthService {
   Future<AuthResponse> register(String username, String email, String password,
       {String? firstName, String? lastName, String? dateOfBirth}) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/auth/register'),
+      Uri.parse(ApiConfig.register),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'username': username,
@@ -94,7 +94,7 @@ class AuthService {
 
   Future<User> getUserByToken(String token) async {
     final response = await http.get(
-      Uri.parse('$baseUrl/auth/me'),
+      Uri.parse(ApiConfig.me),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
