@@ -27,20 +27,16 @@ public class LoginCommand {
     }
 
     public AuthResponse execute(AuthRequest request) {
-        try {
-            Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
-            );
+        Authentication authentication = authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+        );
 
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            String jwt = tokenProvider.generateToken(authentication);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String jwt = tokenProvider.generateToken(authentication);
 
-            User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new AuthenticationException("User not found"));
+        User user = userRepository.findByUsername(request.getUsername())
+            .orElseThrow(() -> new AuthenticationException("User not found"));
 
-            return new AuthResponse(jwt, user.getUsername());
-        } catch (Exception e) {
-            throw e;
-        }
+        return new AuthResponse(jwt, user.getUsername());
     }
 }

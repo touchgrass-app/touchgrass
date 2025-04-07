@@ -33,41 +33,37 @@ public class RegisterCommand {
     }
 
     public AuthResponse execute(RegisterRequest request) {
-        try {
-            // Check if username or email already exists
-            if (userRepository.existsByUsername(request.getUsername())) {
-                throw new AuthenticationException("This username is already taken. Please choose a different one.");
-            }
-            if (userRepository.existsByEmail(request.getEmail())) {
-                throw new AuthenticationException("This email is already registered. Please use a different email or try logging in.");
-            }
-            
-            // Create new user
-            User user = new User();
-            user.setUsername(request.getUsername());
-            user.setEmail(request.getEmail());
-            user.setPassword(passwordEncoder.encode(request.getPassword()));
-            user.setFirstName(request.getFirstName());
-            user.setLastName(request.getLastName());
-            user.setDateOfBirth(request.getDateOfBirth());
-            user.setAdmin(false);
-            user.setCreatedAt(LocalDateTime.now());
-            user.setUpdatedAt(LocalDateTime.now());
-
-            // Save user
-            userRepository.save(user);
-
-            // Authenticate the user and generate token
-            Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
-            );
-
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            String jwt = tokenProvider.generateToken(authentication);
-
-            return new AuthResponse(jwt, user.getUsername());
-        } catch (Exception e) {
-            throw e;
+        // Check if username or email already exists
+        if (userRepository.existsByUsername(request.getUsername())) {
+            throw new AuthenticationException("This username is already taken. Please choose a different one.");
         }
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new AuthenticationException("This email is already registered. Please use a different email or try logging in.");
+        }
+        
+        // Create new user
+        User user = new User();
+        user.setUsername(request.getUsername());
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setFirstName(request.getFirstName());
+        user.setLastName(request.getLastName());
+        user.setDateOfBirth(request.getDateOfBirth());
+        user.setAdmin(false);
+        user.setCreatedAt(LocalDateTime.now());
+        user.setUpdatedAt(LocalDateTime.now());
+
+        // Save user
+        userRepository.save(user);
+
+        // Authenticate the user and generate token
+        Authentication authentication = authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+        );
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String jwt = tokenProvider.generateToken(authentication);
+
+        return new AuthResponse(jwt, user.getUsername());
     }
 }
