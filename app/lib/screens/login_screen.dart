@@ -15,10 +15,11 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _authService = AuthService();
 
-  String _usernameOrEmail = '';
+  String _username = '';
   String _password = '';
   bool _isLoading = false;
   String? _error;
+  bool _showPassword = false;
 
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
@@ -30,7 +31,11 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      final user = await _authService.login(_usernameOrEmail, _password);
+      final authResponse = await _authService.login(_username, _password);
+
+      // Fetch the user data using the token
+      final user = await _authService.getUserByToken(authResponse.token);
+
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -126,7 +131,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           }
                           return null;
                         },
-                        onSaved: (value) => _usernameOrEmail = value!,
+                        onSaved: (value) => _username = value!,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -140,26 +145,40 @@ class _LoginScreenState extends State<LoginScreen> {
                           color: Colors.white70,
                           fontSize: 14,
                         ),
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: 'Password',
-                          labelStyle: TextStyle(
+                          labelStyle: const TextStyle(
                             color: Colors.grey,
                             fontSize: 14,
                           ),
-                          border: OutlineInputBorder(
+                          border: const OutlineInputBorder(
                             borderSide: BorderSide.none,
                           ),
-                          prefixIcon: Icon(
+                          prefixIcon: const Icon(
                             Icons.lock_outline,
                             color: Colors.grey,
                             size: 20,
                           ),
-                          contentPadding: EdgeInsets.symmetric(
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _showPassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                              color: Colors.grey,
+                              size: 20,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _showPassword = !_showPassword;
+                              });
+                            },
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16,
                             vertical: 12,
                           ),
                         ),
-                        obscureText: true,
+                        obscureText: !_showPassword,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter your password';

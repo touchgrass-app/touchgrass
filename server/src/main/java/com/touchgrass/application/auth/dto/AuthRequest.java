@@ -1,7 +1,12 @@
-package com.touchgrass.model;
+package com.touchgrass.application.auth.dto;
 
-public class LoginRequest {
+import jakarta.validation.constraints.NotBlank;
+
+public class AuthRequest {
+    @NotBlank(message = "Username is required")
     private String username;
+    
+    @NotBlank(message = "Password is required")
     private String password;
 
     public String getUsername() {

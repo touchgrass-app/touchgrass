@@ -1,13 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/user.dart';
+import '../services/auth_service.dart';
 import '../utils/fade_route.dart';
 import 'login_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   final User user;
+  final _authService = AuthService();
 
-  const HomeScreen({super.key, required this.user});
+  HomeScreen({super.key, required this.user});
+
+  Future<void> _handleLogout(BuildContext context) async {
+    await _authService.logout();
+    if (context.mounted) {
+      Navigator.of(context).pushReplacement(
+        FadeRoute(page: const LoginScreen()),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -17,11 +28,7 @@ class HomeScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () {
-              Navigator.of(context).pushReplacement(
-                FadeRoute(page: const LoginScreen()),
-              );
-            },
+            onPressed: () => _handleLogout(context),
           ),
         ],
       ),
@@ -101,7 +108,7 @@ class HomeScreen extends StatelessWidget {
           SizedBox(
             width: 100,
             child: Text(
-              '$label:',
+              label,
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Colors.grey,
@@ -109,7 +116,10 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: Text(value),
+            child: Text(
+              value,
+              style: const TextStyle(color: Colors.white70),
+            ),
           ),
         ],
       ),
