@@ -15,7 +15,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _authService = AuthService();
 
-  String _usernameOrEmail = '';
+  String _username = '';
   String _password = '';
   bool _isLoading = false;
   String? _error;
@@ -31,7 +31,11 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      final user = await _authService.login(_usernameOrEmail, _password);
+      final authResponse = await _authService.login(_username, _password);
+
+      // Fetch the user data using the token
+      final user = await _authService.getUserByToken(authResponse.token);
+
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -127,7 +131,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           }
                           return null;
                         },
-                        onSaved: (value) => _usernameOrEmail = value!,
+                        onSaved: (value) => _username = value!,
                       ),
                     ),
                     const SizedBox(height: 16),

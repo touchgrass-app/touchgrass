@@ -24,8 +24,10 @@ public class JwtTokenProvider {
     @Value("${jwt.expiration}")
     private long jwtExpiration;
 
-    // Constructor for testing
+    private SecretKey signingKey;
+
     public JwtTokenProvider() {
+        this.signingKey = Keys.secretKeyFor(SignatureAlgorithm.HS512);
     }
 
     // Getters and setters
@@ -62,7 +64,7 @@ public class JwtTokenProvider {
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
-                .signWith(getSigningKey(), SignatureAlgorithm.HS512)
+                .signWith(signingKey, SignatureAlgorithm.HS512)
                 .compact();
     }
 
@@ -73,7 +75,7 @@ public class JwtTokenProvider {
      */
     public String getUsernameFromToken(String token) {
         Claims claims = Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
+                .setSigningKey(signingKey)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
@@ -99,21 +101,12 @@ public class JwtTokenProvider {
      */
     private Boolean isTokenExpired(String token) {
         Claims claims = Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
+                .setSigningKey(signingKey)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
         
         final Date expiration = claims.getExpiration();
         return expiration.before(new Date());
-    }
-
-    /**
-     * Create a signing key from the JWT secret
-     * @return The signing key
-     */
-    private SecretKey getSigningKey() {
-        byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
-        return Keys.hmacShaKeyFor(keyBytes);
     }
 }
