@@ -40,7 +40,7 @@ public class AuthController {
             AuthResponse response = authService.register(request);
             return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
         } catch (AuthenticationException e) {
-            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage(), "AUTHENTICATION_ERROR"));
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage(), "REGISTRATION_ERROR"));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ApiResponse.error("An unexpected error occurred during registration: " + e.getMessage(), "INTERNAL_ERROR"));

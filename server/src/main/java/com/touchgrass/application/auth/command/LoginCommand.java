@@ -27,16 +27,34 @@ public class LoginCommand {
     }
 
     public AuthResponse execute(AuthRequest request) {
-        Authentication authentication = authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
-        );
+        try {
+            // Try to find user by both username and email
+            User userByUsername = userRepository.findByUsername(request.getUsername()).orElse(null);
+            User userByEmail = userRepository.findByEmail(request.getUsername()).orElse(null);
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = tokenProvider.generateToken(authentication);
+            // If no user found by either method
+            if (userByUsername == null && userByEmail == null) {
+                throw new AuthenticationException("Invalid username or password");
+            }
 
-        User user = userRepository.findByUsername(request.getUsername())
-            .orElseThrow(() -> new AuthenticationException("User not found"));
+            // If both username and email matches found, ensure they're the same user
+            if (userByUsername != null && userByEmail != null && !userByUsername.getId().equals(userByEmail.getId())) {
+                throw new AuthenticationException("Invalid username or password");
+            }
 
-        return new AuthResponse(jwt, user.getUsername());
+            // Use whichever user was found (they're either the same user or only one was found)
+            User userToAuthenticate = userByUsername != null ? userByUsername : userByEmail;
+            
+            Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(userToAuthenticate.getUsername(), request.getPassword())
+            );
+
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            String jwt = tokenProvider.generateToken(authentication);
+
+            return new AuthResponse(jwt, userToAuthenticate.getUsername());
+        } catch (org.springframework.security.core.AuthenticationException e) {
+            throw new AuthenticationException("Invalid username or password");
+        }
     }
 }
