@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
 
 class AuthResponse {
@@ -18,6 +19,7 @@ class AuthResponse {
 
 class AuthService {
   static const String baseUrl = 'http://localhost:8080/api';
+  static const String _tokenKey = 'auth_token';
 
   T _handleResponse<T>(http.Response response,
       T Function(Map<String, dynamic> data) parser, String errorMessage) {
@@ -32,6 +34,21 @@ class AuthService {
     }
   }
 
+  Future<void> _saveToken(String token) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_tokenKey, token);
+  }
+
+  Future<String?> getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_tokenKey);
+  }
+
+  Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_tokenKey);
+  }
+
   Future<AuthResponse> login(String username, String password) async {
     final response = await http.post(
       Uri.parse('$baseUrl/auth/login'),
@@ -43,8 +60,10 @@ class AuthService {
     );
 
     if (response.statusCode == 200) {
-      return _handleResponse(
-          response, AuthResponse.fromJson, 'Failed to login');
+      final authResponse =
+          _handleResponse(response, AuthResponse.fromJson, 'Failed to login');
+      await _saveToken(authResponse.token);
+      return authResponse;
     }
     throw Exception('Failed to login');
   }
@@ -65,8 +84,10 @@ class AuthService {
     );
 
     if (response.statusCode == 201) {
-      return _handleResponse(
+      final authResponse = _handleResponse(
           response, AuthResponse.fromJson, 'Failed to register');
+      await _saveToken(authResponse.token);
+      return authResponse;
     }
     throw Exception('Failed to register');
   }
