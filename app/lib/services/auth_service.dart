@@ -28,9 +28,12 @@ class AuthService {
       if (jsonResponse['success'] == true && jsonResponse['data'] != null) {
         return parser(jsonResponse['data']);
       }
-      throw Exception(jsonResponse['message'] ?? errorMessage);
+      throw jsonResponse['message'] ?? errorMessage;
     } catch (e) {
-      throw Exception('Failed to parse server response: $errorMessage');
+      if (e is String) {
+        rethrow;
+      }
+      throw 'Failed to parse server response';
     }
   }
 
@@ -59,13 +62,26 @@ class AuthService {
       }),
     );
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 200 &&
+        jsonDecode(response.body)['success'] == true) {
       final authResponse =
           _handleResponse(response, AuthResponse.fromJson, 'Failed to login');
       await _saveToken(authResponse.token);
       return authResponse;
     }
-    throw Exception('Failed to login');
+
+    // Handle error response
+    try {
+      final jsonResponse = jsonDecode(response.body);
+      print('Login error response: $jsonResponse'); // Debug log
+      final errorMessage = jsonResponse['message'] as String?;
+      throw errorMessage ?? 'Failed to login';
+    } catch (e) {
+      if (e is String) {
+        rethrow;
+      }
+      throw 'Failed to login';
+    }
   }
 
   Future<AuthResponse> register(String username, String email, String password,
@@ -89,7 +105,18 @@ class AuthService {
       await _saveToken(authResponse.token);
       return authResponse;
     }
-    throw Exception('Failed to register');
+
+    // Handle error response
+    try {
+      final jsonResponse = jsonDecode(response.body);
+      final errorMessage = jsonResponse['message'] as String?;
+      throw errorMessage ?? 'Failed to register';
+    } catch (e) {
+      if (e is String) {
+        rethrow;
+      }
+      throw 'Failed to register';
+    }
   }
 
   Future<User> getUserByToken(String token) async {
