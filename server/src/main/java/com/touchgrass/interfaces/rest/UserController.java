@@ -5,8 +5,6 @@ import com.touchgrass.application.user.dto.UserResponse;
 import com.touchgrass.domain.user.model.User;
 import com.touchgrass.domain.user.repository.UserRepository;
 
-import jakarta.websocket.MessageHandler.Partial;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -22,38 +20,92 @@ public class UserController {
         this.userRepository = userRepository;
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<UserResponse>> getUser(@PathVariable Long id) {
-        try {
-            User user = userRepository.findById(id)
-                    .orElseThrow(() -> new AuthenticationException("User not found"));
-            return ResponseEntity.ok(ApiResponse.success(UserResponse.from(user)));
-        } catch (AuthenticationException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(ApiResponse.error(e.getMessage(), "USER_NOT_FOUND"));
+    private User findCurrentUser(Authentication authentication) {
+        return userRepository.findByUsername(authentication.getName())
+                .orElseThrow(() -> new AuthenticationException("Current user not found"));
+    }
+
+    private User findUserById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new AuthenticationException("User not found"));
+    }
+
+    private void checkAdminOrSelfPermission(User targetUser, User currentUser) {
+        if (!currentUser.isAdmin() && !targetUser.getUsername().equals(currentUser.getUsername())) {
+            throw new AuthenticationException("You don't have permission to perform this action");
         }
+    }
+
+    private <T> ResponseEntity<ApiResponse<T>> handleUserNotFound(AuthenticationException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error(e.getMessage(), "USER_NOT_FOUND"));
+    }
+
+    private <T> ResponseEntity<ApiResponse<T>> handlePermissionDenied(AuthenticationException e) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.error(e.getMessage(), "PERMISSION_DENIED"));
     }
 
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<UserResponse>> getCurrentUser(Authentication authentication) {
         try {
-            User user = userRepository.findByUsername(authentication.getName())
-                    .orElseThrow(() -> new AuthenticationException("User not found"));
+            User user = findCurrentUser(authentication);
             return ResponseEntity.ok(ApiResponse.success(UserResponse.from(user)));
         } catch (AuthenticationException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(ApiResponse.error(e.getMessage(), "USER_NOT_FOUND"));
+            return handleUserNotFound(e);
         }
     }
 
-    @PostMapping("/{id}")
-    public User deleteUser(@RequestBody int id) {
-        return null;
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable Long id) {
+        try {
+            User user = findUserById(id);
+            return ResponseEntity.ok(ApiResponse.success(UserResponse.from(user)));
+        } catch (AuthenticationException e) {
+            return handleUserNotFound(e);
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable Long id, Authentication authentication) {
+        try {
+            User user = findUserById(id);
+            User currentUser = findCurrentUser(authentication);
+            checkAdminOrSelfPermission(user, currentUser);
+
+            userRepository.deleteById(id);
+            return ResponseEntity.ok(ApiResponse.success(null));
+        } catch (AuthenticationException e) {
+            if (e.getMessage().contains("permission")) {
+                return handlePermissionDenied(e);
+            }
+            return handleUserNotFound(e);
+        }
     }
 
     @PatchMapping("/{id}")
-    public User updateUser(@RequestBody Partial<User> user) {
-        return null;
-    }
+    public ResponseEntity<ApiResponse<UserResponse>> updateUser(
+            @PathVariable Long id,
+            @RequestBody UserResponse userResponse,
+            Authentication authentication) {
+        try {
+            User user = findUserById(id);
+            User currentUser = findCurrentUser(authentication);
+            checkAdminOrSelfPermission(user, currentUser);
 
+            // Update user fields
+            user.setFirstName(userResponse.firstName());
+            user.setLastName(userResponse.lastName());
+            user.setDateOfBirth(userResponse.dateOfBirth());
+
+            // Save updated user
+            User updatedUser = userRepository.save(user);
+            return ResponseEntity.ok(ApiResponse.success(UserResponse.from(updatedUser)));
+        } catch (AuthenticationException e) {
+            if (e.getMessage().contains("permission")) {
+                return handlePermissionDenied(e);
+            }
+            return handleUserNotFound(e);
+        }
+    }
 }
