@@ -25,7 +25,7 @@ public class User {
 
     @Column(name = "last_name", nullable = true)
     private String lastName;
-    
+
     @Column(name = "date_of_birth", nullable = true)
     private LocalDate dateOfBirth;
 
@@ -53,7 +53,7 @@ public class User {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // Getters and Setters
+    // JPA required getters and setters
     public Long getId() {
         return id;
     }
@@ -141,4 +141,4 @@ public class User {
     public void setLastLogin(LocalDateTime lastLogin) {
         this.lastLogin = lastLogin;
     }
-} 
+}
