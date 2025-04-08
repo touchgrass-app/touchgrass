@@ -24,9 +24,13 @@ ENV SERVER_PORT=8080
 # Copy the project files
 COPY . .
 
+# Copy application.properties
+RUN cp src/main/resources/application.properties.template src/main/resources/application.properties
+
 # Install Maven
 RUN ./mvnw clean install -Dmaven.test.skip
 
 EXPOSE $SERVER_PORT
+VOLUME [ "/var/lib/mysql" ]
 
 CMD ["bash", "startup.sh"]
