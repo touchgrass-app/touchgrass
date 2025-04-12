@@ -41,6 +41,9 @@ public class User {
     @Column(name = "last_login")
     private LocalDateTime lastLogin;
 
+    @Column(name = "avatar_url", nullable = true)
+    private String avatarUrl;
+
     // Domain methods
     public void updateLastLogin() {
         this.lastLogin = LocalDateTime.now();
@@ -141,4 +144,12 @@ public class User {
     public void setLastLogin(LocalDateTime lastLogin) {
         this.lastLogin = lastLogin;
     }
-} 
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
+}
