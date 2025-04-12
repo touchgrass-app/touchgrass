@@ -10,6 +10,9 @@ Before running the application, you need:
 3. **VSCode** - Install it from [VSCode's website](https://code.visualstudio.com/).
 4. **Git** - Install it from [Git's website](https://git-scm.com/downloads).
 
+##
+If you are on macOS or Linux, use the "Quick Start" section. If you are on Windows, use the "Quick Start (PowerShell)" section.
+
 ## Quick Start
 
 ```bash
@@ -35,6 +38,33 @@ cd server && docker compose up --build
 
 # Start the frontend (in a new terminal)
 cd app && flutter run -d chrome
+```
+
+## Quick Start (PowerShell)
+
+```powershell
+# Clone the repository
+git clone https://github.com/touchgrass-app/touchgrass.git
+cd touchgrass
+
+# Set up the .env files
+copy server\.env.template server\.env
+copy app\.env.template app\.env
+
+# Add the following environment variables to the .env file:
+# MYSQL_USER: The username for the MySQL database.
+# MYSQL_PASSWORD: The password for the MySQL database.
+# MYSQL_DATABASE: The name of the MySQL database.
+# MYSQL_HOST: The host address of the MySQL database.
+# MYSQL_PORT: The port number of the MySQL database.
+# SERVER_PORT: The port number for the backend server.
+# JWT_SECRET: The secret key used for JWT authentication.
+
+# Build the backend using Docker Compose
+cd server ; docker compose up --build
+
+# Start the frontend (in a new terminal)
+cd app ; flutter run -d chrome
 ```
 
 The Docker Compose setup will:
