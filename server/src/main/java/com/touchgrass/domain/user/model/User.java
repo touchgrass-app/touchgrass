@@ -1,4 +1,4 @@
-package com.touchgrass.domain.user;
+package com.touchgrass.domain.user.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;

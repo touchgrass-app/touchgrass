@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math';
 
 import '../services/auth_service.dart';
 import '../utils/fade_route.dart';
@@ -61,6 +62,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
+  void _generateRandomUser() {
+    final random = Random();
+    final firstName = 'User${random.nextInt(1000)}';
+    final lastName = 'Test${random.nextInt(1000)}';
+
+    _usernameController.text =
+        '${firstName.toLowerCase()}${random.nextInt(1000)}';
+    _emailController.text = '${_usernameController.text}@example.com';
+    _passwordController.text = 'password';
+    _firstNameController.text = firstName;
+    _lastNameController.text = lastName;
+
+    // Generate a random date of birth between 18 and 80 years ago
+    final now = DateTime.now();
+    final randomDays = random.nextInt(365 * 62); // 62 years range
+    _dateOfBirth = now.subtract(Duration(days: 365 * 18 + randomDays));
+
+    setState(() {}); // Update the UI to show the new values
+  }
+
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -83,7 +104,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       });
 
       try {
-        final user = await _authService.register(
+        final authResponse = await _authService.register(
           _usernameController.text,
           _emailController.text,
           _passwordController.text,
@@ -95,6 +116,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
               : _lastNameController.text,
           dateOfBirth: _dateOfBirth?.toIso8601String(),
         );
+
+        // Fetch the user data using the token
+        final user = await _authService.getUserByToken(authResponse.token);
 
         if (!mounted) return;
 
@@ -486,6 +510,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           textAlign: TextAlign.center,
                         ),
                       ),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: _isLoading ? null : _generateRandomUser,
+                      icon: const Icon(Icons.auto_fix_high),
+                      label: const Text('Generate Random User'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
                     const SizedBox(height: 24),
                     SizedBox(
                       height: 42,
