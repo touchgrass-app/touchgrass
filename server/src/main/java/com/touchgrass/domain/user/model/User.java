@@ -147,16 +147,18 @@ public class User implements UserDetails {
 
     // Domain methods
     public void updateLastLogin() {
-        this.lastLogin = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now();
+        this.lastLogin = now;
+        this.updatedAt = now;
     }
 
     public void updateProfile(String firstName, String lastName, LocalDate dateOfBirth, String avatarUrl) {
+        LocalDateTime now = LocalDateTime.now();
         this.firstName = firstName;
         this.lastName = lastName;
         this.dateOfBirth = dateOfBirth;
         this.avatarUrl = avatarUrl;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = now;
     }
 
     // JPA required getters and setters
