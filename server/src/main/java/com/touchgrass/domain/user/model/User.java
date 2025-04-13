@@ -46,6 +46,58 @@ public class User implements UserDetails {
     @Column(name = "last_login")
     private LocalDateTime lastLogin;
 
+    // Builder pattern
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+        private final User user;
+
+        private Builder() {
+            this.user = new User();
+        }
+
+        public Builder username(String username) {
+            user.setUsername(username);
+            return this;
+        }
+
+        public Builder email(String email) {
+            user.setEmail(email);
+            return this;
+        }
+
+        public Builder password(String password) {
+            user.setPassword(password);
+            return this;
+        }
+
+        public Builder firstName(String firstName) {
+            user.setFirstName(firstName);
+            return this;
+        }
+
+        public Builder lastName(String lastName) {
+            user.setLastName(lastName);
+            return this;
+        }
+
+        public Builder dateOfBirth(LocalDate dateOfBirth) {
+            user.setDateOfBirth(dateOfBirth);
+            return this;
+        }
+
+        public Builder isAdmin(boolean isAdmin) {
+            user.setAdmin(isAdmin);
+            return this;
+        }
+
+        public User build() {
+            return user;
+        }
+    }
+
     // UserDetails methods
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -173,5 +225,16 @@ public class User implements UserDetails {
 
     public void setLastLogin(LocalDateTime lastLogin) {
         this.lastLogin = lastLogin;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 }

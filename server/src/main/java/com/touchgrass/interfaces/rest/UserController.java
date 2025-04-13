@@ -2,6 +2,7 @@ package com.touchgrass.interfaces.rest;
 
 import com.touchgrass.application.auth.exception.AuthenticationException;
 import com.touchgrass.application.user.dto.UserResponse;
+import com.touchgrass.application.user.exception.UserErrorCode;
 import com.touchgrass.domain.user.model.User;
 import com.touchgrass.domain.user.repository.UserRepository;
 
@@ -30,22 +31,23 @@ public class UserController {
                 .orElseThrow(() -> new AuthenticationException("User not found"));
     }
 
-    private void checkAdminOrSelfPermission(User targetUser, User currentUser) {
-        if (!currentUser.isAdmin() && !targetUser.getUsername().equals(currentUser.getUsername())) {
+    private void checkAdminPermission(User currentUser) {
+        if (!currentUser.isAdmin()) {
             throw new AuthenticationException("You don't have permission to perform this action");
         }
     }
 
     private <T> ResponseEntity<ApiResponse<T>> handleUserNotFound(AuthenticationException e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ApiResponse.error(e.getMessage(), "USER_NOT_FOUND"));
+                .body(ApiResponse.error(e.getMessage(), UserErrorCode.USER_NOT_FOUND.getCode()));
     }
 
     private <T> ResponseEntity<ApiResponse<T>> handlePermissionDenied(AuthenticationException e) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(ApiResponse.error(e.getMessage(), "PERMISSION_DENIED"));
+                .body(ApiResponse.error(e.getMessage(), UserErrorCode.PERMISSION_DENIED.getCode()));
     }
 
+    // Current user endpoints (/me)
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<UserResponse>> getCurrentUser(Authentication authentication) {
         try {
@@ -56,8 +58,42 @@ public class UserController {
         }
     }
 
+    @DeleteMapping("/me")
+    public ResponseEntity<ApiResponse<Void>> deleteCurrentUser(Authentication authentication) {
+        try {
+            User currentUser = findCurrentUser(authentication);
+            userRepository.deleteById(currentUser.getId());
+            return ResponseEntity.ok(ApiResponse.success(null));
+        } catch (AuthenticationException e) {
+            return handleUserNotFound(e);
+        }
+    }
+
+    @PatchMapping("/me")
+    public ResponseEntity<ApiResponse<UserResponse>> updateCurrentUser(
+            @RequestBody UserResponse userResponse,
+            Authentication authentication) {
+        try {
+            User currentUser = findCurrentUser(authentication);
+
+            // Update user fields
+            currentUser.setFirstName(userResponse.firstName());
+            currentUser.setLastName(userResponse.lastName());
+            currentUser.setDateOfBirth(userResponse.dateOfBirth());
+
+            // Save updated user
+            User updatedUser = userRepository.save(currentUser);
+            return ResponseEntity.ok(ApiResponse.success(UserResponse.from(updatedUser)));
+        } catch (AuthenticationException e) {
+            return handleUserNotFound(e);
+        }
+    }
+
+    // User ID-based endpoints
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<UserResponse>> getUserById(
+            @PathVariable Long id,
+            Authentication authentication) {
         try {
             User user = findUserById(id);
             return ResponseEntity.ok(ApiResponse.success(UserResponse.from(user)));
@@ -67,11 +103,12 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable Long id, Authentication authentication) {
+    public ResponseEntity<ApiResponse<Void>> deleteUserById(
+            @PathVariable Long id,
+            Authentication authentication) {
         try {
-            User user = findUserById(id);
             User currentUser = findCurrentUser(authentication);
-            checkAdminOrSelfPermission(user, currentUser);
+            checkAdminPermission(currentUser);
 
             userRepository.deleteById(id);
             return ResponseEntity.ok(ApiResponse.success(null));
@@ -84,14 +121,14 @@ public class UserController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<ApiResponse<UserResponse>> updateUser(
+    public ResponseEntity<ApiResponse<UserResponse>> updateUserById(
             @PathVariable Long id,
             @RequestBody UserResponse userResponse,
             Authentication authentication) {
         try {
             User user = findUserById(id);
             User currentUser = findCurrentUser(authentication);
-            checkAdminOrSelfPermission(user, currentUser);
+            checkAdminPermission(currentUser);
 
             // Update user fields
             user.setFirstName(userResponse.firstName());
