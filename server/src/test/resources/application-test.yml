@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=MySQL
     username: sa
     password: 
     driver-class-name: org.h2.Driver
@@ -12,12 +12,13 @@ spring:
       hibernate:
         format_sql: true
 
-  security:
-    jwt:
-      secret: gVhtCopvDJwjJ73DUh1uYH38kxHr0dO17+BoEDPSAN5F2pe2gxMY0XdbpxAlAxPljhsg7vVLKGYhOD6YhXyATA==
-      expiration: 86400000 # a day
+jwt:
+  secret: gVhtCopvDJwjJ73DUh1uYH38kxHr0dO17+BoEDPSAN5F2pe2gxMY0XdbpxAlAxPljhsg7vVLKGYhOD6YhXyATA==
+  expiration: 86400000 # a day
 
 logging:
   level:
     org.springframework.security: DEBUG
-    com.touchgrass: DEBUG 
+    com.touchgrass: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql: TRACE 
