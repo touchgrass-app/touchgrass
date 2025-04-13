@@ -3,12 +3,16 @@ package com.touchgrass.interfaces.rest;
 import com.touchgrass.application.auth.exception.AuthenticationException;
 import com.touchgrass.application.user.dto.UserResponse;
 import com.touchgrass.application.user.exception.UserErrorCode;
+import com.touchgrass.domain.exceptions.PermissionDeniedException;
+import com.touchgrass.domain.exceptions.UserNotFoundException;
 import com.touchgrass.domain.user.model.User;
 import com.touchgrass.domain.user.repository.UserRepository;
+import com.touchgrass.interfaces.rest.dto.ApiResponse;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -49,13 +53,10 @@ public class UserController {
 
     // Current user endpoints (/me)
     @GetMapping("/me")
-    public ResponseEntity<ApiResponse<UserResponse>> getCurrentUser(Authentication authentication) {
-        try {
-            User user = findCurrentUser(authentication);
-            return ResponseEntity.ok(ApiResponse.success(UserResponse.from(user)));
-        } catch (AuthenticationException e) {
-            return handleUserNotFound(e);
-        }
+    public ApiResponse<UserResponse> getCurrentUser(Authentication authentication) {
+        User user = userRepository.findByUsername(authentication.getName())
+            .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        return ApiResponse.success(UserResponse.from(user));
     }
 
     @DeleteMapping("/me")
@@ -73,20 +74,15 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserResponse>> updateCurrentUser(
             @RequestBody UserResponse userResponse,
             Authentication authentication) {
-        try {
-            User currentUser = findCurrentUser(authentication);
-
-            // Update user fields
-            currentUser.setFirstName(userResponse.firstName());
-            currentUser.setLastName(userResponse.lastName());
-            currentUser.setDateOfBirth(userResponse.dateOfBirth());
-
-            // Save updated user
-            User updatedUser = userRepository.save(currentUser);
-            return ResponseEntity.ok(ApiResponse.success(UserResponse.from(updatedUser)));
-        } catch (AuthenticationException e) {
-            return handleUserNotFound(e);
-        }
+        User currentUser = (User) authentication.getPrincipal();
+        currentUser.updateProfile(
+            userResponse.firstName(),
+            userResponse.lastName(),
+            userResponse.dateOfBirth(),
+            userResponse.avatarUrl()
+        );
+        userRepository.save(currentUser);
+        return ResponseEntity.ok(ApiResponse.success(UserResponse.from(currentUser)));
     }
 
     // User ID-based endpoints
@@ -125,24 +121,21 @@ public class UserController {
             @PathVariable Long id,
             @RequestBody UserResponse userResponse,
             Authentication authentication) {
-        try {
-            User user = findUserById(id);
-            User currentUser = findCurrentUser(authentication);
-            checkAdminPermission(currentUser);
-
-            // Update user fields
-            user.setFirstName(userResponse.firstName());
-            user.setLastName(userResponse.lastName());
-            user.setDateOfBirth(userResponse.dateOfBirth());
-
-            // Save updated user
-            User updatedUser = userRepository.save(user);
-            return ResponseEntity.ok(ApiResponse.success(UserResponse.from(updatedUser)));
-        } catch (AuthenticationException e) {
-            if (e.getMessage().contains("permission")) {
-                return handlePermissionDenied(e);
-            }
-            return handleUserNotFound(e);
+        User currentUser = (User) authentication.getPrincipal();
+        if (!currentUser.isAdmin()) {
+            throw new PermissionDeniedException("Only admin users can update other users");
         }
+
+        User user = userRepository.findById(id)
+            .orElseThrow(() -> new UserNotFoundException(id));
+        
+        user.updateProfile(
+            userResponse.firstName(),
+            userResponse.lastName(),
+            userResponse.dateOfBirth(),
+            userResponse.avatarUrl()
+        );
+        userRepository.save(user);
+        return ResponseEntity.ok(ApiResponse.success(UserResponse.from(user)));
     }
 }

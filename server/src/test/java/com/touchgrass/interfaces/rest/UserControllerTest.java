@@ -2,6 +2,7 @@ package com.touchgrass.interfaces.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.touchgrass.domain.user.model.User;
+import com.touchgrass.domain.user.model.UserRole;
 import com.touchgrass.domain.user.repository.UserRepository;
 import com.touchgrass.infrastructure.auth.JwtTokenProvider;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,6 +17,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,6 +46,9 @@ class UserControllerTest {
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     private User testUser;
     private User adminUser;
     private String userToken;
@@ -51,10 +56,10 @@ class UserControllerTest {
 
     @BeforeEach
     void setUp() {
-        // Create a test user in the database
+        // Create test user
         testUser = User.builder()
             .username("testuser")
-            .password("password")
+            .password(passwordEncoder.encode("password"))
             .email("test@example.com")
             .firstName("Test")
             .lastName("User")
@@ -63,10 +68,10 @@ class UserControllerTest {
             .build();
         testUser = userRepository.save(testUser);
 
-        // Create an admin user
+        // Create admin user
         adminUser = User.builder()
             .username("admin")
-            .password("password")
+            .password(passwordEncoder.encode("password"))
             .email("admin@example.com")
             .firstName("Admin")
             .lastName("User")
@@ -79,7 +84,7 @@ class UserControllerTest {
         UserDetails userDetails = new org.springframework.security.core.userdetails.User(
             testUser.getUsername(),
             testUser.getPassword(),
-            Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
+            Collections.singletonList(new SimpleGrantedAuthority(UserRole.USER.getAuthority()))
         );
         Authentication userAuthentication = new UsernamePasswordAuthenticationToken(
             userDetails,
@@ -92,7 +97,7 @@ class UserControllerTest {
         UserDetails adminDetails = new org.springframework.security.core.userdetails.User(
             adminUser.getUsername(),
             adminUser.getPassword(),
-            Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN"))
+            Collections.singletonList(new SimpleGrantedAuthority(UserRole.ADMIN.getAuthority()))
         );
         Authentication adminAuthentication = new UsernamePasswordAuthenticationToken(
             adminDetails,

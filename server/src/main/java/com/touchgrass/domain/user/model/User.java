@@ -37,7 +37,7 @@ public class User implements UserDetails {
     @Column(name = "is_admin")
     private boolean isAdmin;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
@@ -49,6 +49,17 @@ public class User implements UserDetails {
     @Column(name = "avatar_url", nullable = true)
     private String avatarUrl;
 
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = createdAt;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+
     // Builder pattern
     public static Builder builder() {
         return new Builder();
@@ -57,43 +68,8 @@ public class User implements UserDetails {
     public static class Builder {
         private final User user;
 
-        private Builder() {
+        public Builder() {
             this.user = new User();
-        }
-
-        public Builder username(String username) {
-            user.setUsername(username);
-            return this;
-        }
-
-        public Builder email(String email) {
-            user.setEmail(email);
-            return this;
-        }
-
-        public Builder password(String password) {
-            user.setPassword(password);
-            return this;
-        }
-
-        public Builder firstName(String firstName) {
-            user.setFirstName(firstName);
-            return this;
-        }
-
-        public Builder lastName(String lastName) {
-            user.setLastName(lastName);
-            return this;
-        }
-
-        public Builder dateOfBirth(LocalDate dateOfBirth) {
-            user.setDateOfBirth(dateOfBirth);
-            return this;
-        }
-
-        public Builder isAdmin(boolean isAdmin) {
-            user.setAdmin(isAdmin);
-            return this;
         }
 
         public User build() {
@@ -104,7 +80,9 @@ public class User implements UserDetails {
     // UserDetails methods
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singletonList(new SimpleGrantedAuthority(isAdmin ? "ROLE_ADMIN" : "ROLE_USER"));
+        return Collections.singletonList(new SimpleGrantedAuthority(
+            isAdmin ? UserRole.ADMIN.getAuthority() : UserRole.USER.getAuthority()
+        ));
     }
 
     @Override
@@ -130,12 +108,14 @@ public class User implements UserDetails {
     // Domain methods
     public void updateLastLogin() {
         this.lastLogin = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
-    public void updateProfile(String firstName, String lastName, LocalDate dateOfBirth) {
+    public void updateProfile(String firstName, String lastName, LocalDate dateOfBirth, String avatarUrl) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.dateOfBirth = dateOfBirth;
+        this.avatarUrl = avatarUrl;
         this.updatedAt = LocalDateTime.now();
     }
 
@@ -228,17 +208,6 @@ public class User implements UserDetails {
 
     public void setLastLogin(LocalDateTime lastLogin) {
         this.lastLogin = lastLogin;
-    }
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
     }
 
     public String getAvatarUrl() {

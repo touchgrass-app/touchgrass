@@ -1,6 +1,7 @@
 package com.touchgrass.infrastructure.auth.service;
 
 import com.touchgrass.domain.user.model.User;
+import com.touchgrass.domain.user.model.UserRole;
 import com.touchgrass.domain.user.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,9 +29,12 @@ public class CustomUserDetailsService implements UserDetailsService {
                     return new UsernameNotFoundException("User not found with username: " + username);
                 });
 
-        return new org.springframework.security.core.userdetails.User(
-                user.getUsername(),
-                user.getPassword(),
-                Collections.singletonList(new SimpleGrantedAuthority(user.isAdmin() ? "ROLE_ADMIN" : "ROLE_USER")));
+        return org.springframework.security.core.userdetails.User.builder()
+            .username(user.getUsername())
+            .password(user.getPassword())
+            .authorities(Collections.singletonList(
+                new SimpleGrantedAuthority(user.isAdmin() ? UserRole.ADMIN.getAuthority() : UserRole.USER.getAuthority())
+            ))
+            .build();
     }
 }

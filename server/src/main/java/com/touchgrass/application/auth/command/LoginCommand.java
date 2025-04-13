@@ -52,6 +52,10 @@ public class LoginCommand {
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String jwt = tokenProvider.generateToken(authentication);
 
+            // Update last login timestamp
+            userToAuthenticate.updateLastLogin();
+            userRepository.save(userToAuthenticate);
+
             return new AuthResponse(jwt, userToAuthenticate.getUsername());
         } catch (org.springframework.security.core.AuthenticationException e) {
             throw new AuthenticationException("Invalid username or password");

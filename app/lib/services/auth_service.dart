@@ -136,4 +136,20 @@ class AuthService {
     return _handleResponse(
         response, User.fromJson, 'Failed to get user details');
   }
+
+  Future<User> getUserByToken(String token) async {
+    final response = await http.get(
+      Uri.parse(ApiConfig.me),
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final json = jsonDecode(response.body);
+      return User.fromJson(json['data']);
+    } else {
+      throw Exception('Failed to get user');
+    }
+  }
 }
