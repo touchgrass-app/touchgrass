@@ -72,6 +72,46 @@ public class User implements UserDetails {
             this.user = new User();
         }
 
+        public Builder username(String username) {
+            user.setUsername(username);
+            return this;
+        }
+
+        public Builder email(String email) {
+            user.setEmail(email);
+            return this;
+        }
+
+        public Builder password(String password) {
+            user.setPassword(password);
+            return this;
+        }
+
+        public Builder firstName(String firstName) {
+            user.setFirstName(firstName);
+            return this;
+        }
+
+        public Builder lastName(String lastName) {
+            user.setLastName(lastName);
+            return this;
+        }
+
+        public Builder dateOfBirth(LocalDate dateOfBirth) {
+            user.setDateOfBirth(dateOfBirth);
+            return this;
+        }
+
+        public Builder isAdmin(boolean isAdmin) {
+            user.setAdmin(isAdmin);
+            return this;
+        }
+
+        public Builder avatarUrl(String avatarUrl) {
+            user.setAvatarUrl(avatarUrl);
+            return this;
+        }
+
         public User build() {
             return user;
         }

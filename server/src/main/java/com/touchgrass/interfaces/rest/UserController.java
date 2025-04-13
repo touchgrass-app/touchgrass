@@ -7,8 +7,6 @@ import com.touchgrass.domain.exceptions.PermissionDeniedException;
 import com.touchgrass.domain.exceptions.UserNotFoundException;
 import com.touchgrass.domain.user.model.User;
 import com.touchgrass.domain.user.repository.UserRepository;
-import com.touchgrass.interfaces.rest.dto.ApiResponse;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;

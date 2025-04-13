@@ -59,8 +59,8 @@ class UserControllerTest {
         // Create test user
         testUser = User.builder()
             .username("testuser")
-            .password(passwordEncoder.encode("password"))
             .email("test@example.com")
+            .password(passwordEncoder.encode("password"))
             .firstName("Test")
             .lastName("User")
             .dateOfBirth(LocalDate.of(1990, 1, 1))
@@ -71,8 +71,8 @@ class UserControllerTest {
         // Create admin user
         adminUser = User.builder()
             .username("admin")
-            .password(passwordEncoder.encode("password"))
             .email("admin@example.com")
+            .password(passwordEncoder.encode("password"))
             .firstName("Admin")
             .lastName("User")
             .dateOfBirth(LocalDate.of(1990, 1, 1))
