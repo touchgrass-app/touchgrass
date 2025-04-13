@@ -9,6 +9,7 @@ class User {
   final DateTime createdAt;
   final DateTime updatedAt;
   final DateTime? lastLogin;
+  final String? avatarUrl;
 
   User({
     required this.id,
@@ -21,6 +22,7 @@ class User {
     required this.createdAt,
     required this.updatedAt,
     this.lastLogin,
+    this.avatarUrl,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -39,6 +41,7 @@ class User {
       lastLogin: json['lastLogin'] != null
           ? DateTime.parse(json['lastLogin'] as String)
           : null,
+      avatarUrl: json['avatarUrl'] as String?,
     );
   }
 
@@ -54,6 +57,7 @@ class User {
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
       'lastLogin': lastLogin?.toIso8601String(),
+      'avatarUrl': avatarUrl,
     };
   }
 }
