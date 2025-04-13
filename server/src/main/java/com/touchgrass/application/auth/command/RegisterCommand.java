@@ -12,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -32,6 +33,7 @@ public class RegisterCommand {
         this.tokenProvider = tokenProvider;
     }
 
+    @Transactional
     public AuthResponse execute(RegisterRequest request) {
         // Check if username or email already exists
         if (userRepository.existsByUsername(request.getUsername())) {
