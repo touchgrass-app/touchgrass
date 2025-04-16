@@ -43,7 +43,7 @@ public class User implements UserDetails {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @Column(name = "last_login")
+    @Column(name = "last_active")
     private LocalDateTime lastActive;
 
     @Column(name = "avatar_url", nullable = true)

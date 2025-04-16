@@ -64,7 +64,7 @@ class HomeScreen extends StatelessWidget {
                     ),
                     if (user.lastActive != null)
                       _buildInfoRow(
-                        'Last login',
+                        'Last Active',
                         DateFormat('MMM d, yyyy').format(user.lastActive!),
                       ),
                   ],
