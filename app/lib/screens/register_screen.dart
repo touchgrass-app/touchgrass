@@ -74,12 +74,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _firstNameController.text = firstName;
     _lastNameController.text = lastName;
 
-    // Generate a random date of birth between 18 and 80 years ago
     final now = DateTime.now();
-    final randomDays = random.nextInt(365 * 62); // 62 years range
+    final randomDays = random.nextInt(365 * 62);
     _dateOfBirth = now.subtract(Duration(days: 365 * 18 + randomDays));
 
-    setState(() {}); // Update the UI to show the new values
+    setState(() {});
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -117,7 +116,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
           dateOfBirth: _dateOfBirth?.toIso8601String(),
         );
 
-        // Fetch the user data using the token
         final user = await _authService.getUserByToken(authResponse.token);
 
         if (!mounted) return;

@@ -16,14 +16,14 @@ class UserTest {
     @BeforeEach
     void setUp() {
         user = User.builder()
-            .username("testuser")
-            .email("test@example.com")
-            .password("password")
-            .firstName("Test")
-            .lastName("User")
-            .dateOfBirth(LocalDate.of(1990, 1, 1))
-            .isAdmin(false)
-            .build();
+                .username("testuser")
+                .email("test@example.com")
+                .password("password")
+                .firstName("Test")
+                .lastName("User")
+                .dateOfBirth(LocalDate.of(1990, 1, 1))
+                .isAdmin(false)
+                .build();
     }
 
     @Test
@@ -78,9 +78,9 @@ class UserTest {
     @Test
     void testUpdateLastLogin() {
         assertNull(user.getLastLogin());
-        
+
         user.updateLastLogin();
-        
+
         assertNotNull(user.getLastLogin());
         assertNotNull(user.getUpdatedAt());
         assertEquals(user.getLastLogin(), user.getUpdatedAt());
@@ -92,8 +92,7 @@ class UserTest {
         String newLastName = "Name";
         LocalDate newDateOfBirth = LocalDate.of(1995, 1, 1);
         String newAvatarUrl = "http://example.com/avatar.jpg";
-        
-        // First set an initial updatedAt
+
         user.setUpdatedAt(LocalDateTime.now());
         LocalDateTime beforeUpdate = user.getUpdatedAt();
 
@@ -105,4 +104,4 @@ class UserTest {
         assertEquals(newAvatarUrl, user.getAvatarUrl());
         assertTrue(user.getUpdatedAt().isAfter(beforeUpdate));
     }
-} 
+}

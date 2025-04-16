@@ -117,7 +117,6 @@ class UserControllerTest {
         @Transactional(propagation = Propagation.NOT_SUPPORTED)
         @DisplayName("DELETE /api/users/me - Should delete current user")
         void deleteCurrentUser_ShouldDeleteUser() throws Exception {
-            // Create a new user just for this test
             User deleteTestUser = User.builder()
                     .username("deletetestuser")
                     .email("deletetest@example.com")
@@ -129,7 +128,6 @@ class UserControllerTest {
                     .build();
             deleteTestUser = userRepository.save(deleteTestUser);
 
-            // Generate token for this user
             Authentication auth = new UsernamePasswordAuthenticationToken(
                     deleteTestUser,
                     null,

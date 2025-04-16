@@ -59,7 +59,6 @@ public class UserController {
                 .body(ApiResponse.error(e.getMessage(), UserErrorCode.PERMISSION_DENIED.getCode()));
     }
 
-    // Current user endpoints (/me)
     @GetMapping("/me")
     public ApiResponse<UserResponse> getCurrentUser(Authentication authentication) {
         User user = userRepository.findByUsername(authentication.getName())
@@ -91,7 +90,6 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(UserResponse.from(currentUser)));
     }
 
-    // User ID-based endpoints
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<UserResponse>> getUserById(
             @PathVariable Long id,

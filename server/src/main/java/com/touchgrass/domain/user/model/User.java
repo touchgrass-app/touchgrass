@@ -60,7 +60,6 @@ public class User implements UserDetails {
         updatedAt = LocalDateTime.now();
     }
 
-    // Builder pattern
     public static Builder builder() {
         return new Builder();
     }
@@ -117,12 +116,10 @@ public class User implements UserDetails {
         }
     }
 
-    // UserDetails methods
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Collections.singletonList(new SimpleGrantedAuthority(
-            isAdmin ? UserRole.ADMIN.getAuthority() : UserRole.USER.getAuthority()
-        ));
+                isAdmin ? UserRole.ADMIN.getAuthority() : UserRole.USER.getAuthority()));
     }
 
     @Override
@@ -145,7 +142,6 @@ public class User implements UserDetails {
         return true;
     }
 
-    // Domain methods
     public void updateLastLogin() {
         LocalDateTime now = LocalDateTime.now();
         this.lastLogin = now;
@@ -161,7 +157,6 @@ public class User implements UserDetails {
         this.updatedAt = now;
     }
 
-    // JPA required getters and setters
     public Long getId() {
         return id;
     }

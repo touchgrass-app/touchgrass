@@ -34,12 +34,10 @@ public class JwtTokenProvider {
         this.signingKey = Keys.hmacShaKeyFor(keyBytes);
     }
 
-    // For testing purposes
     public void setJwtSecret(String jwtSecret) {
         this.jwtSecret = jwtSecret;
     }
 
-    // For testing purposes
     public void setJwtExpirationInMs(long jwtExpirationInMs) {
         this.jwtExpirationInMs = jwtExpirationInMs;
     }

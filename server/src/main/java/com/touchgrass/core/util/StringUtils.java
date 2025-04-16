@@ -2,7 +2,6 @@ package com.touchgrass.core.util;
 
 public final class StringUtils {
     private StringUtils() {
-        // Private constructor to prevent instantiation
     }
 
     public static String camelToSnake(String camelCase) {
@@ -49,4 +48,4 @@ public final class StringUtils {
 
         return result.toString();
     }
-} 
+}

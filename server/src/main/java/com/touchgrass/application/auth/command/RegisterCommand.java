@@ -34,7 +34,6 @@ public class RegisterCommand {
 
     @Transactional
     public AuthResponse execute(RegisterRequest request) {
-        // Check if username or email already exists
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new AuthenticationException("This username is already taken. Please choose a different one.");
         }
@@ -43,7 +42,6 @@ public class RegisterCommand {
                     "This email is already registered. Please use a different email or try logging in.");
         }
 
-        // Create new user
         User user = User.builder()
                 .username(request.getUsername())
                 .email(request.getEmail())
@@ -54,17 +52,14 @@ public class RegisterCommand {
                 .isAdmin(false)
                 .build();
 
-        // Save user
         userRepository.save(user);
 
-        // Authenticate the user and generate token
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = tokenProvider.generateToken(authentication);
 
-        // Update last login timestamp
         user.updateLastLogin();
         userRepository.save(user);
 

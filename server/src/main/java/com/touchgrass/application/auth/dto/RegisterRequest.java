@@ -22,7 +22,6 @@ public class RegisterRequest {
     private String lastName;
     private LocalDate dateOfBirth;
 
-    // Getters and Setters
     public String getUsername() {
         return username;
     }
@@ -70,4 +69,4 @@ public class RegisterRequest {
     public void setDateOfBirth(LocalDate dateOfBirth) {
         this.dateOfBirth = dateOfBirth;
     }
-} 
+}

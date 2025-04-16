@@ -28,15 +28,12 @@ class AuthService {
     try {
       final jsonResponse = jsonDecode(response.body);
 
-      // Check for success response
       if (jsonResponse['success'] == true && jsonResponse['data'] != null) {
         return parser(jsonResponse['data']);
       }
 
-      // Handle error response
       final errorCode = jsonResponse['error'] as String?;
       if (errorCode != null) {
-        // Check auth errors
         final authError = AuthErrorCode.fromString(errorCode);
         if (authError != null) {
           switch (authError) {
@@ -47,7 +44,6 @@ class AuthService {
           }
         }
 
-        // Check user errors
         final userError = UserErrorCode.fromString(errorCode);
         if (userError != null) {
           switch (userError) {
@@ -59,7 +55,6 @@ class AuthService {
         }
       }
 
-      // Fallback to message or default error
       throw jsonResponse['message'] ?? errorMessage;
     } catch (e) {
       if (e is String) {
