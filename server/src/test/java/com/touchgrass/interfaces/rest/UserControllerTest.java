@@ -1,6 +1,7 @@
 package com.touchgrass.interfaces.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.touchgrass.application.user.dto.UserResponse;
 import com.touchgrass.domain.user.model.User;
 import com.touchgrass.domain.user.model.UserRole;
 import com.touchgrass.domain.user.repository.UserRepository;
@@ -9,6 +10,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -21,10 +25,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.orm.jpa.EntityManagerFactoryUtils;
+import jakarta.persistence.EntityManager;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collections;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -33,6 +43,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @Transactional
 class UserControllerTest {
+
+    private static final Logger log = LoggerFactory.getLogger(UserControllerTest.class);
 
     @Autowired
     private MockMvc mockMvc;
@@ -48,6 +60,9 @@ class UserControllerTest {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private EntityManager entityManager;
 
     private User testUser;
     private User adminUser;
@@ -81,28 +96,18 @@ class UserControllerTest {
         adminUser = userRepository.save(adminUser);
 
         // Generate JWT token for the test user
-        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
-            testUser.getUsername(),
-            testUser.getPassword(),
-            Collections.singletonList(new SimpleGrantedAuthority(UserRole.USER.getAuthority()))
-        );
         Authentication userAuthentication = new UsernamePasswordAuthenticationToken(
-            userDetails,
+            testUser,
             null,
-            userDetails.getAuthorities()
+            testUser.getAuthorities()
         );
         userToken = jwtTokenProvider.generateToken(userAuthentication);
 
         // Generate JWT token for the admin user
-        UserDetails adminDetails = new org.springframework.security.core.userdetails.User(
-            adminUser.getUsername(),
-            adminUser.getPassword(),
-            Collections.singletonList(new SimpleGrantedAuthority(UserRole.ADMIN.getAuthority()))
-        );
         Authentication adminAuthentication = new UsernamePasswordAuthenticationToken(
-            adminDetails,
+            adminUser,
             null,
-            adminDetails.getAuthorities()
+            adminUser.getAuthorities()
         );
         adminToken = jwtTokenProvider.generateToken(adminAuthentication);
     }
@@ -145,11 +150,30 @@ class UserControllerTest {
         @Test
         @DisplayName("PATCH /api/users/me - Should update current user details when authenticated")
         void updateUser_ShouldUpdateUserDetails() throws Exception {
-            User updatedUser = User.builder()
-                .firstName("Updated")
-                .lastName("Name")
-                .build();
+            // Verify initial state
+            User beforeUser = userRepository.findById(testUser.getId()).orElseThrow();
+            System.err.println("\nBefore update:");
+            System.err.println("ID: " + beforeUser.getId());
+            System.err.println("First Name: " + beforeUser.getFirstName());
+            System.err.println("Last Name: " + beforeUser.getLastName());
+            System.err.println("Username: " + beforeUser.getUsername());
+            System.err.println("Email: " + beforeUser.getEmail());
 
+            UserResponse updatedUser = new UserResponse(
+                testUser.getId(),  // id
+                testUser.getUsername(),  // username
+                testUser.getEmail(),  // email
+                "Updated",  // firstName
+                "Name",     // lastName
+                testUser.getDateOfBirth(),  // dateOfBirth
+                testUser.isAdmin(),  // isAdmin
+                testUser.getCreatedAt(),  // createdAt
+                testUser.getUpdatedAt(),  // updatedAt
+                testUser.getLastLogin(),  // lastLogin
+                testUser.getAvatarUrl()  // avatarUrl
+            );
+
+            // Perform the update
             mockMvc.perform(patch("/api/users/me")
                     .header("Authorization", "Bearer " + userToken)
                     .contentType(MediaType.APPLICATION_JSON)
@@ -157,15 +181,40 @@ class UserControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.firstName").value("Updated"))
                     .andExpect(jsonPath("$.data.lastName").value("Name"));
+
+            // Clear the Hibernate cache
+            entityManager.clear();
+
+            // Verify final state
+            User afterUser = userRepository.findById(testUser.getId()).orElseThrow();
+            System.err.println("\nAfter update (after cache clear):");
+            System.err.println("ID: " + afterUser.getId());
+            System.err.println("First Name: " + afterUser.getFirstName());
+            System.err.println("Last Name: " + afterUser.getLastName());
+            System.err.println("Username: " + afterUser.getUsername());
+            System.err.println("Email: " + afterUser.getEmail());
+
+            // These assertions should fail because we're not saving to the database
+            assertEquals("Updated", afterUser.getFirstName(), "First name should not be updated in database");
+            assertEquals("Name", afterUser.getLastName(), "Last name should not be updated in database");
         }
 
         @Test
         @DisplayName("PATCH /api/users/me - Should return 401 when not authenticated")
         void updateUser_ShouldReturnUnauthorized() throws Exception {
-            User updatedUser = User.builder()
-                .firstName("Updated")
-                .lastName("Name")
-                .build();
+            UserResponse updatedUser = new UserResponse(
+                testUser.getId(),  // id
+                testUser.getUsername(),  // username
+                testUser.getEmail(),  // email
+                "Updated",  // firstName
+                "Name",     // lastName
+                testUser.getDateOfBirth(),  // dateOfBirth
+                testUser.isAdmin(),  // isAdmin
+                testUser.getCreatedAt(),  // createdAt
+                testUser.getUpdatedAt(),  // updatedAt
+                testUser.getLastLogin(),  // lastLogin
+                testUser.getAvatarUrl()  // avatarUrl
+            );
 
             mockMvc.perform(patch("/api/users/me")
                     .contentType(MediaType.APPLICATION_JSON)

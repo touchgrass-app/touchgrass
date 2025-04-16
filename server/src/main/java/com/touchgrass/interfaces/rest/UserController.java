@@ -13,6 +13,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -70,15 +73,13 @@ public class UserController {
 
     @PatchMapping("/me")
     public ResponseEntity<ApiResponse<UserResponse>> updateCurrentUser(
-            @RequestBody UserResponse userResponse,
+            @RequestBody String json,
             Authentication authentication) {
+        System.err.println("\nIn updateCurrentUser:");
+        System.err.println("Request body: " + json);
+        
         User currentUser = (User) authentication.getPrincipal();
-        currentUser.updateProfile(
-            userResponse.firstName(),
-            userResponse.lastName(),
-            userResponse.dateOfBirth(),
-            userResponse.avatarUrl()
-        );
+        UserResponse.updateUserFromJson(currentUser, json);
         userRepository.save(currentUser);
         return ResponseEntity.ok(ApiResponse.success(UserResponse.from(currentUser)));
     }
