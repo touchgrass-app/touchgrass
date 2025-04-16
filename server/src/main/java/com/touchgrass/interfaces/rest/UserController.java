@@ -3,6 +3,7 @@ package com.touchgrass.interfaces.rest;
 import com.touchgrass.application.auth.exception.AuthenticationException;
 import com.touchgrass.application.user.dto.UserResponse;
 import com.touchgrass.application.user.exception.UserErrorCode;
+import com.touchgrass.application.user.service.UserService;
 import com.touchgrass.domain.exceptions.PermissionDeniedException;
 import com.touchgrass.domain.exceptions.UserNotFoundException;
 import com.touchgrass.domain.user.model.User;
@@ -21,9 +22,11 @@ import java.util.Map;
 public class UserController {
 
     private final UserRepository userRepository;
+    private final UserService userService;
 
-    public UserController(UserRepository userRepository) {
+    public UserController(UserRepository userRepository, UserService userService) {
         this.userRepository = userRepository;
+        this.userService = userService;
     }
 
     private User findCurrentUser(Authentication authentication) {
@@ -56,7 +59,7 @@ public class UserController {
     @GetMapping("/me")
     public ApiResponse<UserResponse> getCurrentUser(Authentication authentication) {
         User user = userRepository.findByUsername(authentication.getName())
-            .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         return ApiResponse.success(UserResponse.from(user));
     }
 
@@ -77,9 +80,9 @@ public class UserController {
             Authentication authentication) {
         System.err.println("\nIn updateCurrentUser:");
         System.err.println("Request body: " + json);
-        
+
         User currentUser = (User) authentication.getPrincipal();
-        UserResponse.updateUserFromJson(currentUser, json);
+        userService.updateUserFromJson(currentUser, json);
         userRepository.save(currentUser);
         return ResponseEntity.ok(ApiResponse.success(UserResponse.from(currentUser)));
     }
@@ -118,7 +121,7 @@ public class UserController {
     @PatchMapping("/{id}")
     public ResponseEntity<ApiResponse<UserResponse>> updateUserById(
             @PathVariable Long id,
-            @RequestBody UserResponse userResponse,
+            @RequestBody String json,
             Authentication authentication) {
         User currentUser = (User) authentication.getPrincipal();
         if (!currentUser.isAdmin()) {
@@ -126,14 +129,9 @@ public class UserController {
         }
 
         User user = userRepository.findById(id)
-            .orElseThrow(() -> new UserNotFoundException(id));
-        
-        user.updateProfile(
-            userResponse.firstName(),
-            userResponse.lastName(),
-            userResponse.dateOfBirth(),
-            userResponse.avatarUrl()
-        );
+                .orElseThrow(() -> new UserNotFoundException(id));
+
+        userService.updateUserFromJson(user, json);
         userRepository.save(user);
         return ResponseEntity.ok(ApiResponse.success(UserResponse.from(user)));
     }

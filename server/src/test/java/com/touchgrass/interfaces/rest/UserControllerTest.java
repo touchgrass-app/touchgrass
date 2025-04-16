@@ -73,42 +73,40 @@ class UserControllerTest {
     void setUp() {
         // Create test user
         testUser = User.builder()
-            .username("testuser")
-            .email("test@example.com")
-            .password(passwordEncoder.encode("password"))
-            .firstName("Test")
-            .lastName("User")
-            .dateOfBirth(LocalDate.of(1990, 1, 1))
-            .isAdmin(false)
-            .build();
+                .username("testuser")
+                .email("test@example.com")
+                .password(passwordEncoder.encode("password"))
+                .firstName("Test")
+                .lastName("User")
+                .dateOfBirth(LocalDate.of(1990, 1, 1))
+                .isAdmin(false)
+                .build();
         testUser = userRepository.save(testUser);
 
         // Create admin user
         adminUser = User.builder()
-            .username("admin")
-            .email("admin@example.com")
-            .password(passwordEncoder.encode("password"))
-            .firstName("Admin")
-            .lastName("User")
-            .dateOfBirth(LocalDate.of(1990, 1, 1))
-            .isAdmin(true)
-            .build();
+                .username("admin")
+                .email("admin@example.com")
+                .password(passwordEncoder.encode("password"))
+                .firstName("Admin")
+                .lastName("User")
+                .dateOfBirth(LocalDate.of(1990, 1, 1))
+                .isAdmin(true)
+                .build();
         adminUser = userRepository.save(adminUser);
 
         // Generate JWT token for the test user
         Authentication userAuthentication = new UsernamePasswordAuthenticationToken(
-            testUser,
-            null,
-            testUser.getAuthorities()
-        );
+                testUser,
+                null,
+                testUser.getAuthorities());
         userToken = jwtTokenProvider.generateToken(userAuthentication);
 
         // Generate JWT token for the admin user
         Authentication adminAuthentication = new UsernamePasswordAuthenticationToken(
-            adminUser,
-            null,
-            adminUser.getAuthorities()
-        );
+                adminUser,
+                null,
+                adminUser.getAuthorities());
         adminToken = jwtTokenProvider.generateToken(adminAuthentication);
     }
 
@@ -148,77 +146,32 @@ class UserControllerTest {
         }
 
         @Test
-        @DisplayName("PATCH /api/users/me - Should update current user details when authenticated")
+        @Transactional(propagation = Propagation.NOT_SUPPORTED)
+        @DisplayName("PATCH /api/users/me - Should update user details when authenticated")
         void updateUser_ShouldUpdateUserDetails() throws Exception {
-            // Verify initial state
-            User beforeUser = userRepository.findById(testUser.getId()).orElseThrow();
-            System.err.println("\nBefore update:");
-            System.err.println("ID: " + beforeUser.getId());
-            System.err.println("First Name: " + beforeUser.getFirstName());
-            System.err.println("Last Name: " + beforeUser.getLastName());
-            System.err.println("Username: " + beforeUser.getUsername());
-            System.err.println("Email: " + beforeUser.getEmail());
+            String json = "{\"first_name\": \"UpdatedFirstName\", \"last_name\": \"UpdatedLastName\"}";
 
-            UserResponse updatedUser = new UserResponse(
-                testUser.getId(),  // id
-                testUser.getUsername(),  // username
-                testUser.getEmail(),  // email
-                "Updated",  // firstName
-                "Name",     // lastName
-                testUser.getDateOfBirth(),  // dateOfBirth
-                testUser.isAdmin(),  // isAdmin
-                testUser.getCreatedAt(),  // createdAt
-                testUser.getUpdatedAt(),  // updatedAt
-                testUser.getLastLogin(),  // lastLogin
-                testUser.getAvatarUrl()  // avatarUrl
-            );
-
-            // Perform the update
             mockMvc.perform(patch("/api/users/me")
                     .header("Authorization", "Bearer " + userToken)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(updatedUser)))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.firstName").value("Updated"))
-                    .andExpect(jsonPath("$.data.lastName").value("Name"));
+                    .content(json))
+                    .andExpect(status().isOk());
 
-            // Clear the Hibernate cache
-            entityManager.clear();
+            User userInNewTransaction = userRepository.findByUsername(testUser.getUsername()).orElseThrow();
+            System.err.println("After update - First Name: " + userInNewTransaction.getFirstName());
 
-            // Verify final state
-            User afterUser = userRepository.findById(testUser.getId()).orElseThrow();
-            System.err.println("\nAfter update (after cache clear):");
-            System.err.println("ID: " + afterUser.getId());
-            System.err.println("First Name: " + afterUser.getFirstName());
-            System.err.println("Last Name: " + afterUser.getLastName());
-            System.err.println("Username: " + afterUser.getUsername());
-            System.err.println("Email: " + afterUser.getEmail());
-
-            // These assertions should fail because we're not saving to the database
-            assertEquals("Updated", afterUser.getFirstName(), "First name should not be updated in database");
-            assertEquals("Name", afterUser.getLastName(), "Last name should not be updated in database");
+            assertEquals("UpdatedFirstName", userInNewTransaction.getFirstName());
+            assertEquals("UpdatedLastName", userInNewTransaction.getLastName());
         }
 
         @Test
         @DisplayName("PATCH /api/users/me - Should return 401 when not authenticated")
         void updateUser_ShouldReturnUnauthorized() throws Exception {
-            UserResponse updatedUser = new UserResponse(
-                testUser.getId(),  // id
-                testUser.getUsername(),  // username
-                testUser.getEmail(),  // email
-                "Updated",  // firstName
-                "Name",     // lastName
-                testUser.getDateOfBirth(),  // dateOfBirth
-                testUser.isAdmin(),  // isAdmin
-                testUser.getCreatedAt(),  // createdAt
-                testUser.getUpdatedAt(),  // updatedAt
-                testUser.getLastLogin(),  // lastLogin
-                testUser.getAvatarUrl()  // avatarUrl
-            );
+            String json = "{'first_name': 'TestFirstName', 'last_name': 'TestLastName'}";
 
             mockMvc.perform(patch("/api/users/me")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(updatedUser)))
+                    .content(json))
                     .andExpect(status().isUnauthorized());
         }
     }
@@ -267,48 +220,43 @@ class UserControllerTest {
         }
 
         @Test
-        @DisplayName("PATCH /api/users/{id} - Should update user details when authenticated as admin")
-        void updateUserById_ShouldUpdateUserDetails() throws Exception {
-            User updatedUser = User.builder()
-                .firstName("Updated")
-                .lastName("Name")
-                .build();
+        @Transactional(propagation = Propagation.NOT_SUPPORTED)
+        @DisplayName("PATCH /api/users/{id} - Should update user when authenticated as admin")
+        void updateUserById_ShouldUpdateUser() throws Exception {
+            String json = "{\"first_name\": \"UpdatedFirstName\", \"last_name\": \"UpdatedLastName\"}";
 
             mockMvc.perform(patch("/api/users/" + testUser.getId())
                     .header("Authorization", "Bearer " + adminToken)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(updatedUser)))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.firstName").value("Updated"))
-                    .andExpect(jsonPath("$.data.lastName").value("Name"));
+                    .content(json))
+                    .andExpect(status().isOk());
+
+            User userInNewTransaction = userRepository.findByUsername(testUser.getUsername()).orElseThrow();
+
+            assertEquals("UpdatedFirstName", userInNewTransaction.getFirstName());
+            assertEquals("UpdatedLastName", userInNewTransaction.getLastName());
         }
 
         @Test
         @DisplayName("PATCH /api/users/{id} - Should return 403 when authenticated as non-admin")
         void updateUserById_ShouldReturnForbidden() throws Exception {
-            User updatedUser = User.builder()
-                .firstName("Updated")
-                .lastName("Name")
-                .build();
+            String json = "{\"first_name\": \"UpdatedFirstName\", \"last_name\": \"UpdatedLastName\"}";
 
             mockMvc.perform(patch("/api/users/" + testUser.getId())
                     .header("Authorization", "Bearer " + userToken)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(updatedUser)))
+                    .content(json))
                     .andExpect(status().isForbidden());
         }
 
         @Test
         @DisplayName("PATCH /api/users/{id} - Should return 401 when not authenticated")
         void updateUserById_ShouldReturnUnauthorized() throws Exception {
-            User updatedUser = User.builder()
-                .firstName("Updated")
-                .lastName("Name")
-                .build();
+            String json = "{\"first_name\": \"UpdatedFirstName\", \"last_name\": \"UpdatedLastName\"}";
 
             mockMvc.perform(patch("/api/users/" + testUser.getId())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(updatedUser)))
+                    .content(json))
                     .andExpect(status().isUnauthorized());
         }
     }
