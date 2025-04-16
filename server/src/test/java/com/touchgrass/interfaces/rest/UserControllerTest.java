@@ -10,13 +10,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -29,12 +28,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.touchgrass.domain.user.model.User;
 import com.touchgrass.domain.user.repository.UserRepository;
 import com.touchgrass.infrastructure.auth.JwtTokenProvider;
-
-import jakarta.persistence.EntityManager;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -42,13 +38,8 @@ import jakarta.persistence.EntityManager;
 @Transactional
 class UserControllerTest {
 
-    private static final Logger log = LoggerFactory.getLogger(UserControllerTest.class);
-
     @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @Autowired
     private UserRepository userRepository;
@@ -59,9 +50,6 @@ class UserControllerTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private EntityManager entityManager;
-
     private User testUser;
     private User adminUser;
     private String userToken;
@@ -69,10 +57,11 @@ class UserControllerTest {
 
     @BeforeEach
     void setUp() {
-        // Create test user
+        String uniqueId = UUID.randomUUID().toString().substring(0, 8);
+
         testUser = User.builder()
-                .username("testuser")
-                .email("test@example.com")
+                .username("testuser_" + uniqueId)
+                .email("test_" + uniqueId + "@example.com")
                 .password(passwordEncoder.encode("password"))
                 .firstName("Test")
                 .lastName("User")
@@ -81,10 +70,9 @@ class UserControllerTest {
                 .build();
         testUser = userRepository.save(testUser);
 
-        // Create admin user
         adminUser = User.builder()
-                .username("admin")
-                .email("admin@example.com")
+                .username("admin_" + uniqueId)
+                .email("admin_" + uniqueId + "@example.com")
                 .password(passwordEncoder.encode("password"))
                 .firstName("Admin")
                 .lastName("User")
@@ -93,14 +81,12 @@ class UserControllerTest {
                 .build();
         adminUser = userRepository.save(adminUser);
 
-        // Generate JWT token for the test user
         Authentication userAuthentication = new UsernamePasswordAuthenticationToken(
                 testUser,
                 null,
                 testUser.getAuthorities());
         userToken = jwtTokenProvider.generateToken(userAuthentication);
 
-        // Generate JWT token for the admin user
         Authentication adminAuthentication = new UsernamePasswordAuthenticationToken(
                 adminUser,
                 null,
@@ -131,14 +117,33 @@ class UserControllerTest {
         @Transactional(propagation = Propagation.NOT_SUPPORTED)
         @DisplayName("DELETE /api/users/me - Should delete current user")
         void deleteCurrentUser_ShouldDeleteUser() throws Exception {
-            assertTrue(userRepository.findById(testUser.getId()).isPresent());
+            // Create a new user just for this test
+            User deleteTestUser = User.builder()
+                    .username("deletetestuser")
+                    .email("deletetest@example.com")
+                    .password(passwordEncoder.encode("password"))
+                    .firstName("Delete")
+                    .lastName("Test")
+                    .dateOfBirth(LocalDate.of(1990, 1, 1))
+                    .isAdmin(false)
+                    .build();
+            deleteTestUser = userRepository.save(deleteTestUser);
+
+            // Generate token for this user
+            Authentication auth = new UsernamePasswordAuthenticationToken(
+                    deleteTestUser,
+                    null,
+                    deleteTestUser.getAuthorities());
+            String token = jwtTokenProvider.generateToken(auth);
+
+            assertTrue(userRepository.findById(deleteTestUser.getId()).isPresent());
 
             mockMvc.perform(delete("/api/users/me")
-                    .header("Authorization", "Bearer " + userToken))
+                    .header("Authorization", "Bearer " + token))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true));
 
-            assertFalse(userRepository.findById(testUser.getId()).isPresent());
+            assertFalse(userRepository.findById(deleteTestUser.getId()).isPresent());
         }
 
         @Test
@@ -200,14 +205,26 @@ class UserControllerTest {
         @Transactional(propagation = Propagation.NOT_SUPPORTED)
         @DisplayName("DELETE /api/users/{id} - Should delete user when authenticated as admin")
         void deleteUserById_ShouldDeleteUser() throws Exception {
-            assertTrue(userRepository.findById(testUser.getId()).isPresent());
 
-            mockMvc.perform(delete("/api/users/" + testUser.getId())
+            User deleteTestUser = User.builder()
+                    .username("deletetestuser")
+                    .email("deletetest@example.com")
+                    .password(passwordEncoder.encode("password"))
+                    .firstName("Delete")
+                    .lastName("Test")
+                    .dateOfBirth(LocalDate.of(1990, 1, 1))
+                    .isAdmin(false)
+                    .build();
+            deleteTestUser = userRepository.save(deleteTestUser);
+
+            assertTrue(userRepository.findById(deleteTestUser.getId()).isPresent());
+
+            mockMvc.perform(delete("/api/users/" + deleteTestUser.getId())
                     .header("Authorization", "Bearer " + adminToken))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true));
 
-            assertFalse(userRepository.findById(testUser.getId()).isPresent());
+            assertFalse(userRepository.findById(deleteTestUser.getId()).isPresent());
         }
 
         @Test

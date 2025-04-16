@@ -1,5 +1,17 @@
 package com.touchgrass.interfaces.rest;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.touchgrass.application.auth.exception.AuthenticationException;
 import com.touchgrass.application.user.dto.UserResponse;
 import com.touchgrass.application.user.exception.UserErrorCode;
@@ -8,14 +20,6 @@ import com.touchgrass.domain.exceptions.PermissionDeniedException;
 import com.touchgrass.domain.exceptions.UserNotFoundException;
 import com.touchgrass.domain.user.model.User;
 import com.touchgrass.domain.user.repository.UserRepository;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDate;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
