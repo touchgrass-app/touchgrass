@@ -1,16 +1,20 @@
 package com.touchgrass.interfaces.rest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.touchgrass.application.user.dto.UserResponse;
-import com.touchgrass.domain.user.model.User;
-import com.touchgrass.domain.user.model.UserRole;
-import com.touchgrass.domain.user.repository.UserRepository;
-import com.touchgrass.infrastructure.auth.JwtTokenProvider;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.time.LocalDate;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,24 +23,18 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.annotation.Propagation;
-import org.springframework.orm.jpa.EntityManagerFactoryUtils;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.touchgrass.domain.user.model.User;
+import com.touchgrass.domain.user.repository.UserRepository;
+import com.touchgrass.infrastructure.auth.JwtTokenProvider;
+
 import jakarta.persistence.EntityManager;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Collections;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -130,12 +128,17 @@ class UserControllerTest {
         }
 
         @Test
-        @DisplayName("DELETE /api/users/me - Should delete current user when authenticated")
-        void deleteUser_ShouldDeleteUser() throws Exception {
+        @Transactional(propagation = Propagation.NOT_SUPPORTED)
+        @DisplayName("DELETE /api/users/me - Should delete current user")
+        void deleteCurrentUser_ShouldDeleteUser() throws Exception {
+            assertTrue(userRepository.findById(testUser.getId()).isPresent());
+
             mockMvc.perform(delete("/api/users/me")
                     .header("Authorization", "Bearer " + userToken))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true));
+
+            assertFalse(userRepository.findById(testUser.getId()).isPresent());
         }
 
         @Test
@@ -158,8 +161,6 @@ class UserControllerTest {
                     .andExpect(status().isOk());
 
             User userInNewTransaction = userRepository.findByUsername(testUser.getUsername()).orElseThrow();
-            System.err.println("After update - First Name: " + userInNewTransaction.getFirstName());
-
             assertEquals("UpdatedFirstName", userInNewTransaction.getFirstName());
             assertEquals("UpdatedLastName", userInNewTransaction.getLastName());
         }
@@ -196,12 +197,17 @@ class UserControllerTest {
         }
 
         @Test
+        @Transactional(propagation = Propagation.NOT_SUPPORTED)
         @DisplayName("DELETE /api/users/{id} - Should delete user when authenticated as admin")
         void deleteUserById_ShouldDeleteUser() throws Exception {
+            assertTrue(userRepository.findById(testUser.getId()).isPresent());
+
             mockMvc.perform(delete("/api/users/" + testUser.getId())
                     .header("Authorization", "Bearer " + adminToken))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true));
+
+            assertFalse(userRepository.findById(testUser.getId()).isPresent());
         }
 
         @Test
@@ -232,7 +238,6 @@ class UserControllerTest {
                     .andExpect(status().isOk());
 
             User userInNewTransaction = userRepository.findByUsername(testUser.getUsername()).orElseThrow();
-
             assertEquals("UpdatedFirstName", userInNewTransaction.getFirstName());
             assertEquals("UpdatedLastName", userInNewTransaction.getLastName());
         }
