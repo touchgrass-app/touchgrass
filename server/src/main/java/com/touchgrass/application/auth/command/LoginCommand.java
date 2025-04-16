@@ -47,7 +47,7 @@ public class LoginCommand {
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String jwt = tokenProvider.generateToken(authentication);
 
-            userToAuthenticate.updateLastLogin();
+            userToAuthenticate.updateLastActive();
             userRepository.save(userToAuthenticate);
 
             return new AuthResponse(jwt, userToAuthenticate.getUsername());

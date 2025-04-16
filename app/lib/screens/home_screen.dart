@@ -62,10 +62,10 @@ class HomeScreen extends StatelessWidget {
                       'Member since',
                       DateFormat('MMM d, yyyy').format(user.createdAt),
                     ),
-                    if (user.lastLogin != null)
+                    if (user.lastActive != null)
                       _buildInfoRow(
                         'Last login',
-                        DateFormat('MMM d, yyyy').format(user.lastLogin!),
+                        DateFormat('MMM d, yyyy').format(user.lastActive!),
                       ),
                   ],
                 ),

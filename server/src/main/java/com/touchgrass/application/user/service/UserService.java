@@ -19,12 +19,13 @@ public class UserService {
 
     public void updateUserFromJson(User user, String json) {
         try {
-            Map<String, String> updates = objectMapper.readValue(json, new TypeReference<Map<String, String>>() {});
-            
+            Map<String, String> updates = objectMapper.readValue(json, new TypeReference<Map<String, String>>() {
+            });
+
             for (Map.Entry<String, String> entry : updates.entrySet()) {
                 String camelKey = StringUtils.snakeToCamel(entry.getKey());
                 String value = entry.getValue();
-                
+
                 switch (camelKey) {
                     case "firstName" -> user.setFirstName(value);
                     case "lastName" -> user.setLastName(value);
@@ -36,4 +37,4 @@ public class UserService {
             throw new RuntimeException("Failed to update user from JSON", e);
         }
     }
-} 
+}

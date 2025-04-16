@@ -41,4 +41,4 @@ public class AuthController {
                     .body(ApiResponse.error(e.getMessage(), AuthErrorCode.REGISTRATION_ERROR.getCode()));
         }
     }
-} 
+}

@@ -14,7 +14,7 @@ public record UserResponse(
         boolean isAdmin,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
-        LocalDateTime lastLogin,
+        LocalDateTime lastActive,
         String avatarUrl) {
 
     public static UserResponse from(User user) {
@@ -28,7 +28,7 @@ public record UserResponse(
                 user.isAdmin(),
                 user.getCreatedAt(),
                 user.getUpdatedAt(),
-                user.getLastLogin(),
+                user.getLastActive(),
                 user.getAvatarUrl());
     }
 }

@@ -60,7 +60,7 @@ public class RegisterCommand {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = tokenProvider.generateToken(authentication);
 
-        user.updateLastLogin();
+        user.updateLastActive();
         userRepository.save(user);
 
         return new AuthResponse(jwt, user.getUsername());

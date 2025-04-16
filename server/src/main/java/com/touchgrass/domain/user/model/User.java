@@ -44,7 +44,7 @@ public class User implements UserDetails {
     private LocalDateTime updatedAt;
 
     @Column(name = "last_login")
-    private LocalDateTime lastLogin;
+    private LocalDateTime lastActive;
 
     @Column(name = "avatar_url", nullable = true)
     private String avatarUrl;
@@ -142,9 +142,9 @@ public class User implements UserDetails {
         return true;
     }
 
-    public void updateLastLogin() {
+    public void updateLastActive() {
         LocalDateTime now = LocalDateTime.now();
-        this.lastLogin = now;
+        this.lastActive = now;
         this.updatedAt = now;
     }
 
@@ -239,12 +239,12 @@ public class User implements UserDetails {
         this.updatedAt = updatedAt;
     }
 
-    public LocalDateTime getLastLogin() {
-        return lastLogin;
+    public LocalDateTime getLastActive() {
+        return lastActive;
     }
 
-    public void setLastLogin(LocalDateTime lastLogin) {
-        this.lastLogin = lastLogin;
+    public void setLastActive(LocalDateTime lastActive) {
+        this.lastActive = lastActive;
     }
 
     public String getAvatarUrl() {

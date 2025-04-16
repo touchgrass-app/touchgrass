@@ -76,14 +76,14 @@ class UserTest {
     }
 
     @Test
-    void testUpdateLastLogin() {
-        assertNull(user.getLastLogin());
+    void testUpdateLastActive() {
+        assertNull(user.getLastActive());
 
-        user.updateLastLogin();
+        user.updateLastActive();
 
-        assertNotNull(user.getLastLogin());
+        assertNotNull(user.getLastActive());
         assertNotNull(user.getUpdatedAt());
-        assertEquals(user.getLastLogin(), user.getUpdatedAt());
+        assertEquals(user.getLastActive(), user.getUpdatedAt());
     }
 
     @Test

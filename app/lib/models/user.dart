@@ -8,7 +8,7 @@ class User {
   final bool isAdmin;
   final DateTime createdAt;
   final DateTime updatedAt;
-  final DateTime? lastLogin;
+  final DateTime? lastActive;
   final String? avatarUrl;
 
   User({
@@ -21,7 +21,7 @@ class User {
     required this.isAdmin,
     required this.createdAt,
     required this.updatedAt,
-    this.lastLogin,
+    this.lastActive,
     this.avatarUrl,
   });
 
@@ -38,8 +38,8 @@ class User {
       isAdmin: json['isAdmin'] as bool? ?? false,
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
-      lastLogin: json['lastLogin'] != null
-          ? DateTime.parse(json['lastLogin'] as String)
+      lastActive: json['lastActive'] != null
+          ? DateTime.parse(json['lastActive'] as String)
           : null,
       avatarUrl: json['avatarUrl'] as String?,
     );
@@ -56,7 +56,7 @@ class User {
       'isAdmin': isAdmin,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
-      'lastLogin': lastLogin?.toIso8601String(),
+      'lastActive': lastActive?.toIso8601String(),
       'avatarUrl': avatarUrl,
     };
   }

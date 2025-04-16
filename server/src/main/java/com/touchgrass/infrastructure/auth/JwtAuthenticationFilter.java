@@ -65,7 +65,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authentication);
 
                     User user = (User) userDetails;
-                    user.updateLastLogin();
+                    user.updateLastActive();
                     userRepository.save(user);
 
                     filterChain.doFilter(request, response);

@@ -27,11 +27,11 @@ public class CustomUserDetailsService implements UserDetailsService {
                 });
 
         return org.springframework.security.core.userdetails.User.builder()
-            .username(user.getUsername())
-            .password(user.getPassword())
-            .authorities(Collections.singletonList(
-                new SimpleGrantedAuthority(user.isAdmin() ? UserRole.ADMIN.getAuthority() : UserRole.USER.getAuthority())
-            ))
-            .build();
+                .username(user.getUsername())
+                .password(user.getPassword())
+                .authorities(Collections.singletonList(
+                        new SimpleGrantedAuthority(
+                                user.isAdmin() ? UserRole.ADMIN.getAuthority() : UserRole.USER.getAuthority())))
+                .build();
     }
 }
