@@ -39,11 +39,16 @@ class HomeScreen extends StatelessWidget {
     final imageHeight = screenHeight * 0.7;
 
     return Scaffold(
+      backgroundColor: const Color(0xFF1A1A1A),
       appBar: AppBar(
-        title: const Text('TouchGrass'),
+        backgroundColor: const Color(0xFF242424),
+        title: const Text(
+          'TouchGrass',
+          style: TextStyle(color: Colors.white70),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout, color: Colors.white70),
             onPressed: () => _handleLogout(context),
           ),
         ],
@@ -67,6 +72,7 @@ class HomeScreen extends StatelessWidget {
               child: Card(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 clipBehavior: Clip.antiAlias,
+                color: const Color(0xFF242424),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -78,12 +84,18 @@ class HomeScreen extends StatelessWidget {
                           loadingBuilder: (context, child, loadingProgress) {
                             if (loadingProgress == null) return child;
                             return const Center(
-                              child: CircularProgressIndicator(),
+                              child: CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                    Color(0xFF4CAF50)),
+                              ),
                             );
                           },
                           errorBuilder: (context, error, stackTrace) {
                             return const Center(
-                              child: Text('Failed to load image'),
+                              child: Text(
+                                'Failed to load image',
+                                style: TextStyle(color: Colors.white70),
+                              ),
                             );
                           },
                         ),
@@ -96,17 +108,19 @@ class HomeScreen extends StatelessWidget {
                         children: [
                           Text(
                             'Post ${index + 1}',
-                            style: Theme.of(context).textTheme.titleLarge,
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             'Posted by ${user.username}',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                  color: Colors.grey,
-                                ),
+                            style: const TextStyle(
+                              color: Colors.grey,
+                              fontSize: 14,
+                            ),
                           ),
                         ],
                       ),
@@ -119,6 +133,7 @@ class HomeScreen extends StatelessWidget {
         },
       ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: const Color(0xFF4CAF50),
         onPressed: () {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -127,7 +142,7 @@ class HomeScreen extends StatelessWidget {
             ),
           );
         },
-        child: const Icon(Icons.add_a_photo),
+        child: const Icon(Icons.add_a_photo, color: Colors.white),
       ),
     );
   }
