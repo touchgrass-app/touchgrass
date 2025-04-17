@@ -33,7 +33,6 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final authResponse = await _authService.login(_username, _password);
 
-      // Fetch the user data using the token
       final user = await _authService.getUserByToken(authResponse.token);
 
       if (mounted) {

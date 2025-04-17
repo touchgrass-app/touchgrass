@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
 import '../config/api_config.dart';
+import '../constants/error_codes/auth_error_codes.dart';
+import '../constants/error_codes/user_error_codes.dart';
 
 class AuthResponse {
   final String token;
@@ -25,9 +27,34 @@ class AuthService {
       T Function(Map<String, dynamic> data) parser, String errorMessage) {
     try {
       final jsonResponse = jsonDecode(response.body);
+
       if (jsonResponse['success'] == true && jsonResponse['data'] != null) {
         return parser(jsonResponse['data']);
       }
+
+      final errorCode = jsonResponse['error'] as String?;
+      if (errorCode != null) {
+        final authError = AuthErrorCode.fromString(errorCode);
+        if (authError != null) {
+          switch (authError) {
+            case AuthErrorCode.authenticationError:
+              throw 'Invalid credentials';
+            case AuthErrorCode.registrationError:
+              throw jsonResponse['message'] ?? 'Failed to register';
+          }
+        }
+
+        final userError = UserErrorCode.fromString(errorCode);
+        if (userError != null) {
+          switch (userError) {
+            case UserErrorCode.userNotFound:
+              throw 'User not found';
+            case UserErrorCode.permissionDenied:
+              throw 'Permission denied';
+          }
+        }
+      }
+
       throw jsonResponse['message'] ?? errorMessage;
     } catch (e) {
       if (e is String) {
@@ -62,26 +89,10 @@ class AuthService {
       }),
     );
 
-    if (response.statusCode == 200 &&
-        jsonDecode(response.body)['success'] == true) {
-      final authResponse =
-          _handleResponse(response, AuthResponse.fromJson, 'Failed to login');
-      await _saveToken(authResponse.token);
-      return authResponse;
-    }
-
-    // Handle error response
-    try {
-      final jsonResponse = jsonDecode(response.body);
-      print('Login error response: $jsonResponse'); // Debug log
-      final errorMessage = jsonResponse['message'] as String?;
-      throw errorMessage ?? 'Failed to login';
-    } catch (e) {
-      if (e is String) {
-        rethrow;
-      }
-      throw 'Failed to login';
-    }
+    final authResponse =
+        _handleResponse(response, AuthResponse.fromJson, 'Failed to login');
+    await _saveToken(authResponse.token);
+    return authResponse;
   }
 
   Future<AuthResponse> register(String username, String email, String password,
@@ -99,27 +110,16 @@ class AuthService {
       }),
     );
 
-    if (response.statusCode == 201) {
-      final authResponse = _handleResponse(
-          response, AuthResponse.fromJson, 'Failed to register');
-      await _saveToken(authResponse.token);
-      return authResponse;
-    }
-
-    // Handle error response
-    try {
-      final jsonResponse = jsonDecode(response.body);
-      final errorMessage = jsonResponse['message'] as String?;
-      throw errorMessage ?? 'Failed to register';
-    } catch (e) {
-      if (e is String) {
-        rethrow;
-      }
-      throw 'Failed to register';
-    }
+    return _handleResponse(
+        response, AuthResponse.fromJson, 'Failed to register');
   }
 
-  Future<User> getUserByToken(String token) async {
+  Future<User> getCurrentUser() async {
+    final token = await getToken();
+    if (token == null) {
+      throw 'Not authenticated';
+    }
+
     final response = await http.get(
       Uri.parse(ApiConfig.me),
       headers: {
@@ -128,10 +128,23 @@ class AuthService {
       },
     );
 
+    return _handleResponse(
+        response, User.fromJson, 'Failed to get user details');
+  }
+
+  Future<User> getUserByToken(String token) async {
+    final response = await http.get(
+      Uri.parse(ApiConfig.me),
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
     if (response.statusCode == 200) {
-      return _handleResponse(
-          response, User.fromJson, 'Failed to load user data');
+      final json = jsonDecode(response.body);
+      return User.fromJson(json['data']);
+    } else {
+      throw Exception('Failed to get user');
     }
-    throw Exception('Failed to load user data');
   }
 }

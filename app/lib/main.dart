@@ -63,7 +63,6 @@ class _AuthWrapperState extends State<AuthWrapper> {
         }
       }
     } catch (e) {
-      // Token is invalid or expired
       await _authService.logout();
     } finally {
       if (mounted) {
