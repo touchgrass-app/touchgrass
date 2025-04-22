@@ -4,10 +4,23 @@ import '../models/user.dart';
 import '../services/auth_service.dart';
 import '../utils/fade_route.dart';
 import 'login_screen.dart';
+import '../components/post.dart';
 
 class HomeScreen extends StatelessWidget {
   final User user;
   final _authService = AuthService();
+
+  // Sample image URLs - replace with actual post data later
+  final List<String> samplePosts = [
+    'https://picsum.photos/800/600?random=1',
+    'https://picsum.photos/800/600?random=2',
+    'https://picsum.photos/800/600?random=3',
+    'https://picsum.photos/800/600?random=4',
+    'https://picsum.photos/800/600?random=5',
+    'https://picsum.photos/800/600?random=6',
+    'https://picsum.photos/800/600?random=7',
+    'https://picsum.photos/800/600?random=8',
+  ];
 
   HomeScreen({super.key, required this.user});
 
@@ -22,106 +35,48 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final postHeight = screenHeight * 0.7;
+
     return Scaffold(
+      backgroundColor: const Color(0xFF1A1A1A),
       appBar: AppBar(
-        title: const Text('TouchGrass'),
+        backgroundColor: const Color(0xFF242424),
+        title: const Text(
+          'TouchGrass',
+          style: TextStyle(color: Colors.white70),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout, color: Colors.white70),
             onPressed: () => _handleLogout(context),
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Welcome, ${user.firstName ?? user.username}!',
-              style: Theme.of(context).textTheme.headlineMedium,
+      body: ListView.builder(
+        itemCount: samplePosts.length,
+        itemBuilder: (context, index) {
+          return SizedBox(
+            height: postHeight,
+            child: Post(
+              imageUrl: samplePosts[index],
+              username: user.username,
+              title: 'Post ${index + 1}',
             ),
-            const SizedBox(height: 16),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Profile Information',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildInfoRow('Email', user.email),
-                    if (user.firstName != null)
-                      _buildInfoRow('First Name', user.firstName!),
-                    if (user.lastName != null)
-                      _buildInfoRow('Last Name', user.lastName!),
-                    _buildInfoRow(
-                      'Member since',
-                      DateFormat('MMM d, yyyy').format(user.createdAt),
-                    ),
-                    if (user.lastActive != null)
-                      _buildInfoRow(
-                        'Last Active',
-                        DateFormat('MMM d, yyyy').format(user.lastActive!),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Your Habits',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 16),
-            const Expanded(
-              child: Center(
-                child: Text('No habits yet. Start by creating one!'),
-              ),
-            ),
-          ],
-        ),
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: const Color(0xFF4CAF50),
         onPressed: () {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Habit creation coming soon!'),
+              content: Text('Post creation coming soon!'),
               duration: Duration(seconds: 2),
             ),
           );
         },
-        child: const Icon(Icons.add),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 100,
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.grey,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(color: Colors.white70),
-            ),
-          ),
-        ],
+        child: const Icon(Icons.add_a_photo, color: Colors.white),
       ),
     );
   }
