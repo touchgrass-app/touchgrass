@@ -4,7 +4,7 @@ import '../models/user.dart';
 import '../services/auth_service.dart';
 import '../utils/fade_route.dart';
 import 'login_screen.dart';
-import '../components/post.dart';
+import '../widgets/post.dart';
 
 class HomeScreen extends StatelessWidget {
   final User user;
