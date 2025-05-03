@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
-import '../utils/fade_route.dart';
+import '../common/services/auth_service.dart';
+import '../common/style/route_fade.dart';
 import 'home_screen.dart';
 import 'register_screen.dart';
 
@@ -38,7 +38,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (mounted) {
         Navigator.pushReplacement(
           context,
-          FadeRoute(page: HomeScreen(user: user)),
+          RouteFade(page: HomeScreen(user: user)),
         );
       }
     } catch (e) {
@@ -241,7 +241,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: () {
                         Navigator.push(
                           context,
-                          FadeRoute(page: const RegisterScreen()),
+                          RouteFade(page: const RegisterScreen()),
                         );
                       },
                       style: TextButton.styleFrom(

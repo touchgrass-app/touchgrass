@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 
-import '../services/auth_service.dart';
-import '../utils/fade_route.dart';
+import '../common/services/auth_service.dart';
+import '../common/style/route_fade.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
 
@@ -71,6 +71,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         '${firstName.toLowerCase()}${random.nextInt(1000)}';
     _emailController.text = '${_usernameController.text}@example.com';
     _passwordController.text = 'password';
+    _confirmPasswordController.text = 'password';
     _firstNameController.text = firstName;
     _lastNameController.text = lastName;
 
@@ -121,7 +122,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         if (!mounted) return;
 
         Navigator.of(context).pushReplacement(
-          FadeRoute(page: HomeScreen(user: user)),
+          RouteFade(page: HomeScreen(user: user)),
         );
       } catch (e) {
         setState(() {
@@ -555,7 +556,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       onPressed: () {
                         Navigator.push(
                           context,
-                          FadeRoute(page: const LoginScreen()),
+                          RouteFade(page: const LoginScreen()),
                         );
                       },
                       style: TextButton.styleFrom(
