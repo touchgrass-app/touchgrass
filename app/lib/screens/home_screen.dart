@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/user.dart';
-import '../common/services/auth_service.dart';
-import '../common/style/route_fade.dart';
-import '../widgets/post.dart';
+import '../core/services/auth_service.dart';
+import '../core/style/fade_route.dart';
+import '../widgets/posts/post.dart';
 import 'login_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -28,7 +28,7 @@ class HomeScreen extends StatelessWidget {
     await _authService.logout();
     if (context.mounted) {
       Navigator.of(context).pushReplacement(
-        RouteFade(page: const LoginScreen()),
+        FadeRoute(page: const LoginScreen()),
       );
     }
   }
