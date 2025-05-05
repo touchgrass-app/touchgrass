@@ -3,8 +3,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/user.dart';
 import '../config/api_config.dart';
-import '../config/error_auth_codes.dart';
-import '../config/error_user_codes.dart';
+import '../errors/auth_error_codes.dart';
+import '../errors/user_error_codes.dart';
 
 class AuthResponse {
   final String token;
