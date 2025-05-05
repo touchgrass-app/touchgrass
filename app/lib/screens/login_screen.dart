@@ -5,8 +5,8 @@ import 'home_screen.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key,  required this.viewModel});
-  final LoginViewmodel viewModel;
+  LoginScreen({super.key});
+  final LoginViewmodel viewModel = LoginViewmodel();
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
@@ -235,6 +235,22 @@ class _LoginScreenState extends State<LoginScreen> {
                         },
                         )
                     ),
+                    const SizedBox(height: 16),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          FadeRoute(page: const RegisterScreen()),
+                        );
+                      },
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.grey,
+                      ),
+                      child: const Text(
+                        'Don\'t have an account? Register',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -250,7 +266,7 @@ void _onResult() {
     widget.viewModel.login.clearResult();
     Navigator.push(
       context,
-      FadeRoute(page: const RegisterScreen()),
+      FadeRoute(page: HomeScreen()),
     );
   }
   if (widget.viewModel.login.error){

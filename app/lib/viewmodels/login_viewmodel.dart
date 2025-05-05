@@ -8,14 +8,13 @@ import '../core/utils/result.dart';
 
 
 class LoginViewmodel extends ChangeNotifier {
-  LoginViewmodel({required AuthService authService}):
-      _authService = authService {
+  LoginViewmodel() {
       login = Command1(_login);
     // getUser = Command1(_getUser);
   }
 
 
-  final AuthService _authService;
+  final AuthService _authService = AuthService();
   AuthResponse? _authResponse;
   User? _user;
 

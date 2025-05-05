@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+// import 'package:touchgrass/viewmodels/home_viewmodel.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/home_screen.dart';
 import 'models/user.dart';
 import '../core/utils/result.dart';
 import 'core/services/auth_service.dart';
-import 'viewmodels/login_viewmodel.dart';
+// import 'viewmodels/login_viewmodel.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,10 +28,9 @@ class MyApp extends StatelessWidget {
       ),
       home: const AuthWrapper(),
       routes: {
-        '/login': (context) => LoginScreen(viewModel: LoginViewmodel(authService: AuthService())),
+        '/login': (context) => LoginScreen(),
         '/register': (context) => const RegisterScreen(),
-        '/home': (context) => HomeScreen(
-            user: ModalRoute.of(context)!.settings.arguments as User),
+        '/home': (context) => HomeScreen(),
       },
     );
   }
@@ -62,9 +62,9 @@ class _AuthWrapperState extends State<AuthWrapper> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => HomeScreen(user: userResult.value),
+                builder: (context) => HomeScreen(),
               ),
-            );
+          );
           case Error<User>():
             await _authService.logout(); // Token exists but no user in database
             break;
@@ -86,6 +86,6 @@ class _AuthWrapperState extends State<AuthWrapper> {
         ),
       );
     }
-    return LoginScreen(viewModel: LoginViewmodel(authService: AuthService()));
+    return LoginScreen();
   }
 }
