@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/user.dart';
+import '../../models/user.dart';
 import '../config/api_config.dart';
-import '../constants/error_codes/auth_error_codes.dart';
-import '../constants/error_codes/user_error_codes.dart';
+import '../errors/auth_error_codes.dart';
+import '../errors/user_error_codes.dart';
 
 class AuthResponse {
   final String token;
@@ -21,7 +21,7 @@ class AuthResponse {
 }
 
 class AuthService {
-  static const String _tokenKey = 'auth_token';
+  static const String _tokenKey = ''; // Value initialised on use
 
   T _handleResponse<T>(http.Response response,
       T Function(Map<String, dynamic> data) parser, String errorMessage) {

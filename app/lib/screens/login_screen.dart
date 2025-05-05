@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
-import '../utils/fade_route.dart';
+import '../core/services/auth_service.dart';
+import '../core/style/fade_route.dart';
 import 'home_screen.dart';
 import 'register_screen.dart';
 

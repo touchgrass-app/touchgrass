@@ -4,7 +4,7 @@ import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/home_screen.dart';
 import 'models/user.dart';
-import 'services/auth_service.dart';
+import 'core/services/auth_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

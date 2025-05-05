@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 
-import '../services/auth_service.dart';
-import '../utils/fade_route.dart';
+import '../core/services/auth_service.dart';
+import '../core/style/fade_route.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
 
@@ -71,6 +71,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         '${firstName.toLowerCase()}${random.nextInt(1000)}';
     _emailController.text = '${_usernameController.text}@example.com';
     _passwordController.text = 'password';
+    _confirmPasswordController.text = 'password';
     _firstNameController.text = firstName;
     _lastNameController.text = lastName;
 
