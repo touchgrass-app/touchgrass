@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import '../viewmodels/home_viewmodel.dart';
-// import '../models/user.dart';
-// import '../common/services/auth_service.dart';
 import '../core/style/fade_route.dart';
-// import '../common/services/auth_service.dart';
+import '../core/utils/result.dart';
 import '../widgets/posts/post.dart';
-import '../viewmodels/login_viewmodel.dart';
 import 'login_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -36,6 +33,36 @@ class _HomeScreenState extends State<HomeScreen> {
     widget.viewModel.logout.removeListener(_onLogOut);
     widget.viewModel.logout.removeListener(_onCacheUser);
     super.dispose();
+  }
+
+  void _onLogOut() {
+    if (widget.viewModel.logout.completed) {
+      widget.viewModel.logout.clearResult();
+      Navigator.push(
+        context,
+        FadeRoute(page: LoginScreen()),
+      );
+    }
+
+    if (widget.viewModel.logout.error) {
+      Result<dynamic> result = widget.viewModel.logout.result!;
+      switch (result) {
+        case Ok():
+          break;
+        case Error():
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(result.error.toString().replaceFirst("Exception: ", "")), // Corrected property
+          ));
+          break;
+      }
+      widget.viewModel.logout.clearResult();
+    }
+  }
+
+  void _onCacheUser() {
+    if (widget.viewModel.getUser.completed) {
+      widget.viewModel.getUser.clearResult();
+    }
   }
 
   @override
@@ -96,26 +123,5 @@ class _HomeScreenState extends State<HomeScreen> {
       child: const Icon(Icons.add_a_photo, color: Colors.white),
     ),
     );
-  }
-  void _onLogOut() {
-    if (widget.viewModel.logout.completed) {
-      widget.viewModel.logout.clearResult();
-      Navigator.push(
-        context,
-        FadeRoute(page: LoginScreen()),
-      );
-    }
-    if (widget.viewModel.logout.error){
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Issue with logging out"),
-        ),
-      );
-    }
-  }
-  void _onCacheUser() {
-    if (widget.viewModel.getUser.completed) {
-      widget.viewModel.getUser.clearResult();
-    }
   }
 }

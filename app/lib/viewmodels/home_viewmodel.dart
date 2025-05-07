@@ -1,7 +1,4 @@
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
-//import 'package:logging/logging.dart';
 import '../models/user.dart';
 import '../core/services/auth_service.dart';
 import '../core/utils/command.dart';

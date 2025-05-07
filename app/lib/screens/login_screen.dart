@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import '../viewmodels/login_viewmodel.dart';
 import '../core/style/fade_route.dart';
+import '../core/utils/result.dart';
 import 'home_screen.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   LoginScreen({super.key});
+
   final LoginViewmodel viewModel = LoginViewmodel();
+
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
@@ -14,31 +17,50 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _showPassword = false;
-  String _error = "";
-  final TextEditingController _email = TextEditingController(
-  text: 'email@example.com',
-  );
-  final TextEditingController _password = TextEditingController(
-  text: 'password',
-  );
-
+  String? _error;
+  final TextEditingController _email = TextEditingController();
+  final TextEditingController _password = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    widget.viewModel.login.addListener(_onResult);
+    widget.viewModel.login.addListener(_onRegister);
   }
+
   @override
   void didUpdateWidget(covariant LoginScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    oldWidget.viewModel.login.removeListener(_onResult);
-    widget.viewModel.login.addListener(_onResult);
+    oldWidget.viewModel.login.removeListener(_onRegister);
+    widget.viewModel.login.addListener(_onRegister);
   }
 
   @override
   void dispose() {
-    widget.viewModel.login.removeListener(_onResult);
+    widget.viewModel.login.removeListener(_onRegister);
     super.dispose();
+  }
+
+  void _onRegister() {
+    if (widget.viewModel.login.completed) {
+      widget.viewModel.login.clearResult();
+      Navigator.push(
+        context,
+        FadeRoute(page: HomeScreen()),
+      );
+    }
+    if (widget.viewModel.login.error) {
+      Result<dynamic> result = widget.viewModel.login.result!;
+      switch (result) {
+        case Ok():
+          break;
+        case Error():
+          setState(() {
+            _error = result.error.toString().replaceFirst("Exception: ", "");;
+          });
+          break;
+      }
+      widget.viewModel.login.clearResult();
+    }
   }
 
   @override
@@ -172,11 +194,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           }
                           return null;
                         },
-
                       ),
                     ),
                     const SizedBox(height: 24),
-                    if (widget.viewModel.login.error)
+                    if (_error != null)
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
@@ -184,7 +205,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          _error,
+                          _error!,
                           style: TextStyle(
                             color: Colors.red.shade300,
                             fontSize: 12,
@@ -195,52 +216,51 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 24),
                     SizedBox(
                       height: 42,
-                      child:
-                        ListenableBuilder(
-                        listenable: widget.viewModel.login,
-                        builder: (context, _) {
-                          return ElevatedButton(
-                            onPressed: () {
-                              if (_formKey.currentState!.validate()) {
-                                widget.viewModel.login.execute((_email.value
-                                    .text, _password.value.text));
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF4CAF50),
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              elevation: 0,
-                            ),
-                            child: widget.viewModel.login.running
-                                ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.white70),
-                              ),
-                            )
-                                : const Text(
-                              'Login',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          );
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if (_formKey.currentState!.validate()) {
+                            widget.viewModel.login.execute(
+                                (_email.value.text, _password.value.text));
+                          }
                         },
-                        )
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF4CAF50),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: ListenableBuilder(
+                            listenable: widget.viewModel.login,
+                            builder: (context, child) {
+                              return widget.viewModel.login.running
+                                  ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                                Colors.white70),
+                                      ),
+                                    )
+                                  : const Text(
+                                      'Login',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    );
+                            }),
+                      ),
                     ),
                     const SizedBox(height: 16),
                     TextButton(
                       onPressed: () {
                         Navigator.push(
                           context,
-                          FadeRoute(page: const RegisterScreen()),
+                          FadeRoute(page: RegisterScreen()),
                         );
                       },
                       style: TextButton.styleFrom(
@@ -261,16 +281,4 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-void _onResult() {
-  if (widget.viewModel.login.completed) {
-    widget.viewModel.login.clearResult();
-    Navigator.push(
-      context,
-      FadeRoute(page: HomeScreen()),
-    );
-  }
-  if (widget.viewModel.login.error){
-    _error = widget.viewModel.login.error.toString();
-  }
-}
 }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-// import 'package:touchgrass/viewmodels/home_viewmodel.dart';
 import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/home_screen.dart';
@@ -29,7 +28,7 @@ class MyApp extends StatelessWidget {
       home: const AuthWrapper(),
       routes: {
         '/login': (context) => LoginScreen(),
-        '/register': (context) => const RegisterScreen(),
+        '/register': (context) => RegisterScreen(),
         '/home': (context) => HomeScreen(),
       },
     );
