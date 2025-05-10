@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
-import '../core/services/auth_service.dart';
+import '../viewmodels/login_viewmodel.dart';
 import '../core/style/fade_route.dart';
+import '../core/utils/result.dart';
 import 'home_screen.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  LoginScreen({super.key});
+
+  final LoginViewmodel viewModel = LoginViewmodel();
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -13,44 +16,50 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _authService = AuthService();
-
-  String _username = '';
-  String _password = '';
-  bool _isLoading = false;
-  String? _error;
   bool _showPassword = false;
+  String? _error;
+  final TextEditingController _email = TextEditingController();
+  final TextEditingController _password = TextEditingController();
 
-  Future<void> _login() async {
-    if (!_formKey.currentState!.validate()) return;
+  @override
+  void initState() {
+    super.initState();
+    widget.viewModel.login.addListener(_onRegister);
+  }
 
-    _formKey.currentState!.save();
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+  @override
+  void didUpdateWidget(covariant LoginScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    oldWidget.viewModel.login.removeListener(_onRegister);
+    widget.viewModel.login.addListener(_onRegister);
+  }
 
-    try {
-      final authResponse = await _authService.login(_username, _password);
+  @override
+  void dispose() {
+    widget.viewModel.login.removeListener(_onRegister);
+    super.dispose();
+  }
 
-      final user = await _authService.getUserByToken(authResponse.token);
-
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          FadeRoute(page: HomeScreen(user: user)),
-        );
+  void _onRegister() {
+    if (widget.viewModel.login.completed) {
+      widget.viewModel.login.clearResult();
+      Navigator.push(
+        context,
+        FadeRoute(page: HomeScreen()),
+      );
+    }
+    if (widget.viewModel.login.error) {
+      Result<dynamic> result = widget.viewModel.login.result!;
+      switch (result) {
+        case Ok():
+          break;
+        case Error():
+          setState(() {
+            _error = result.error.toString().replaceFirst("Exception: ", "");;
+          });
+          break;
       }
-    } catch (e) {
-      setState(() {
-        _error = e.toString();
-      });
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      widget.viewModel.login.clearResult();
     }
   }
 
@@ -124,13 +133,13 @@ class _LoginScreenState extends State<LoginScreen> {
                             vertical: 12,
                           ),
                         ),
+                        controller: _email,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter your username or email';
                           }
                           return null;
                         },
-                        onSaved: (value) => _username = value!,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -178,13 +187,13 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         obscureText: !_showPassword,
+                        controller: _password,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter your password';
                           }
                           return null;
                         },
-                        onSaved: (value) => _password = value!,
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -208,7 +217,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(
                       height: 42,
                       child: ElevatedButton(
-                        onPressed: _isLoading ? null : _login,
+                        onPressed: () {
+                          if (_formKey.currentState!.validate()) {
+                            widget.viewModel.login.execute(
+                                (_email.value.text, _password.value.text));
+                          }
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF4CAF50),
                           foregroundColor: Colors.white,
@@ -217,23 +231,28 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           elevation: 0,
                         ),
-                        child: _isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white70),
-                                ),
-                              )
-                            : const Text(
-                                'Login',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
+                        child: ListenableBuilder(
+                            listenable: widget.viewModel.login,
+                            builder: (context, child) {
+                              return widget.viewModel.login.running
+                                  ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                                Colors.white70),
+                                      ),
+                                    )
+                                  : const Text(
+                                      'Login',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    );
+                            }),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -241,7 +260,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: () {
                         Navigator.push(
                           context,
-                          FadeRoute(page: const RegisterScreen()),
+                          FadeRoute(page: RegisterScreen()),
                         );
                       },
                       style: TextButton.styleFrom(
@@ -261,4 +280,5 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
+
 }

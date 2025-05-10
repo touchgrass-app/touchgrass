@@ -1,10 +1,11 @@
 import 'dart:convert';
+import '../../core/utils/result.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/user.dart';
-import '../config/api_config.dart';
-import '../errors/auth_error_codes.dart';
-import '../errors/user_error_codes.dart';
+import '../../core/config/api_config.dart';
+import '../../core/errors/auth_error_codes.dart';
+import '../../core/errors/user_error_codes.dart';
 
 class AuthResponse {
   final String token;
@@ -23,46 +24,41 @@ class AuthResponse {
 class AuthService {
   static const String _tokenKey = ''; // Value initialised on use
 
-  T _handleResponse<T>(http.Response response,
-      T Function(Map<String, dynamic> data) parser, String errorMessage) {
+  Result<T> _handleResponse<T>(http.Response response, T Function(Map<String, dynamic> data) parser, String errorMessage) {
     try {
       final jsonResponse = jsonDecode(response.body);
 
       if (jsonResponse['success'] == true && jsonResponse['data'] != null) {
-        return parser(jsonResponse['data']);
+        return Result.ok(parser(jsonResponse['data']));
       }
-
       final errorCode = jsonResponse['error'] as String?;
       if (errorCode != null) {
-        final authError = AuthErrorCode.fromString(errorCode);
-        if (authError != null) {
-          switch (authError) {
-            case AuthErrorCode.authenticationError:
-              throw 'Invalid credentials';
-            case AuthErrorCode.registrationError:
-              throw jsonResponse['message'] ?? 'Failed to register';
-          }
-        }
-
         final userError = UserErrorCode.fromString(errorCode);
         if (userError != null) {
           switch (userError) {
             case UserErrorCode.userNotFound:
-              throw 'User not found';
+              return Result.error(Exception("User Not Found"));
             case UserErrorCode.permissionDenied:
-              throw 'Permission denied';
-          }
+              return Result.error(Exception("Permission Denied"));
+          } // check user errors
         }
+        final authError = AuthErrorCode.fromString(errorCode);
+        if (authError != null) {
+          switch (authError) {
+            case AuthErrorCode.authenticationError:
+              return Result.error(Exception("Authentication Failed"));
+            case AuthErrorCode.registrationError:
+              return Result.error(Exception(jsonResponse['message'] ?? 'Failed to register'));
+          }
+        }// check auth errors
       }
-
-      throw jsonResponse['message'] ?? errorMessage;
-    } catch (e) {
-      if (e is String) {
-        rethrow;
-      }
-      throw 'Failed to parse server response';
+      return Result.error(Exception("Can't parse response"));
+    }
+    on Exception {
+        return Result.error(Exception("Response is not Json"));
     }
   }
+
 
   Future<void> _saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
@@ -74,12 +70,15 @@ class AuthService {
     return prefs.getString(_tokenKey);
   }
 
-  Future<void> logout() async {
+  Future<Result<void>> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tokenKey);
+    return const Result.ok(null);
   }
 
-  Future<AuthResponse> login(String username, String password) async {
+  // Since Login Attempt can fail. it returns a Result<AuthResponse> type
+  Future<Result<AuthResponse>> login(String username, String password) async {
+    try{
     final response = await http.post(
       Uri.parse(ApiConfig.login),
       headers: {'Content-Type': 'application/json'},
@@ -89,35 +88,47 @@ class AuthService {
       }),
     );
 
-    final authResponse =
-        _handleResponse(response, AuthResponse.fromJson, 'Failed to login');
-    await _saveToken(authResponse.token);
-    return authResponse;
+    // result is opened to check if _saveToken function needs to be run
+    final result = _handleResponse(response, AuthResponse.fromJson, 'Failed to login');
+    switch(result){
+      case Ok<AuthResponse>():
+        await _saveToken(result.value.token);
+        return Result.ok(result.value);
+      case Error<AuthResponse>():
+        return Result.error(result.error);
+    }}
+    catch (e) {
+      return Result.error(Exception('Failed to login'));
+    }
   }
 
-  Future<AuthResponse> register(String username, String email, String password,
+  Future<Result<AuthResponse>> register(String username, String email, String password,
       {String? firstName, String? lastName, String? dateOfBirth}) async {
-    final response = await http.post(
-      Uri.parse(ApiConfig.register),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'username': username,
-        'email': email,
-        'password': password,
-        'firstName': firstName,
-        'lastName': lastName,
-        'dateOfBirth': dateOfBirth,
-      }),
-    );
-
-    return _handleResponse(
-        response, AuthResponse.fromJson, 'Failed to register');
+    try {
+      final response = await http.post(
+        Uri.parse(ApiConfig.register),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'username': username,
+          'email': email,
+          'password': password,
+          'firstName': firstName,
+          'lastName': lastName,
+          'dateOfBirth': dateOfBirth,
+        }),
+      );
+      return _handleResponse(
+          response, AuthResponse.fromJson, 'Failed to register');
+    }
+    catch (e){
+      return Result.error(Exception('Failed to register'));
+    }
   }
 
-  Future<User> getCurrentUser() async {
+  Future<Result<User>> getCurrentUser() async {
     final token = await getToken();
     if (token == null) {
-      throw 'Not authenticated';
+      return Result.error(Exception('Not authenticated'));
     }
 
     final response = await http.get(
@@ -128,11 +139,16 @@ class AuthService {
       },
     );
 
-    return _handleResponse(
-        response, User.fromJson, 'Failed to get user details');
+    final result = _handleResponse(response, User.fromJson, 'Failed to get user details');
+    switch(result){
+      case Ok<User>():
+        return Result.ok(result.value);
+      case Error<User>():
+        return Result.error(result.error);
+    }
   }
 
-  Future<User> getUserByToken(String token) async {
+  Future<Result<User>> getUserByToken(String token) async {
     final response = await http.get(
       Uri.parse(ApiConfig.me),
       headers: {
@@ -142,9 +158,9 @@ class AuthService {
 
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body);
-      return User.fromJson(json['data']);
+      return Result.ok(User.fromJson(json['data']));
     } else {
-      throw Exception('Failed to get user');
+      return Result.error(Exception('Failed to get user'));
     }
   }
 }

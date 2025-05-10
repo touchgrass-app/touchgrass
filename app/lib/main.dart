@@ -4,7 +4,9 @@ import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/home_screen.dart';
 import 'models/user.dart';
+import '../core/utils/result.dart';
 import 'core/services/auth_service.dart';
+// import 'viewmodels/login_viewmodel.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,10 +27,9 @@ class MyApp extends StatelessWidget {
       ),
       home: const AuthWrapper(),
       routes: {
-        '/login': (context) => const LoginScreen(),
-        '/register': (context) => const RegisterScreen(),
-        '/home': (context) => HomeScreen(
-            user: ModalRoute.of(context)!.settings.arguments as User),
+        '/login': (context) => LoginScreen(),
+        '/register': (context) => RegisterScreen(),
+        '/home': (context) => HomeScreen(),
       },
     );
   }
@@ -52,28 +53,27 @@ class _AuthWrapperState extends State<AuthWrapper> {
   }
 
   Future<void> _checkAuth() async {
-    try {
       final token = await _authService.getToken();
       if (token != null) {
-        final user = await _authService.getUserByToken(token);
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => HomeScreen(user: user),
-            ),
+        final userResult = await _authService.getUserByToken(token);
+        switch(userResult){
+          case Ok<User>():
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => HomeScreen(),
+              ),
           );
+          case Error<User>():
+            await _authService.logout(); // Token exists but no user in database
+            break;
         }
       }
-    } catch (e) {
-      await _authService.logout();
-    } finally {
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
       }
-    }
   }
 
   @override
@@ -85,6 +85,6 @@ class _AuthWrapperState extends State<AuthWrapper> {
         ),
       );
     }
-    return const LoginScreen();
+    return LoginScreen();
   }
 }

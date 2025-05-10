@@ -10,7 +10,6 @@ class User {
   final DateTime updatedAt;
   final DateTime? lastActive;
   final String? avatarUrl;
-
   User({
     required this.id,
     required this.username,

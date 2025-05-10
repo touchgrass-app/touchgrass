@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
+import '../viewmodels/register_viewmodel.dart';
 import 'dart:math';
-
-import '../core/services/auth_service.dart';
+import '../core/utils/result.dart';
 import '../core/style/fade_route.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
-
+  RegisterScreen({super.key});
+  final RegisterViewmodel viewModel = RegisterViewmodel();
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -23,42 +24,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _lastNameController = TextEditingController();
   final _dateOfBirthController = TextEditingController();
   DateTime? _dateOfBirth;
-  final _authService = AuthService();
   bool _showPassword = false;
   bool _showConfirmPassword = false;
-  bool _isLoading = false;
   String? _error;
 
   @override
   void initState() {
     super.initState();
-    _usernameController.addListener(_updateState);
-    _emailController.addListener(_updateState);
-    _passwordController.addListener(_updateState);
-    _confirmPasswordController.addListener(_updateState);
-    _firstNameController.addListener(_updateState);
-    _lastNameController.addListener(_updateState);
+    widget.viewModel.register.addListener(_onRegister);
   }
-
-  void _updateState() {
-    setState(() {});
+  @override
+  void didUpdateWidget(covariant RegisterScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    oldWidget.viewModel.register.removeListener(_onRegister);
+    widget.viewModel.register.addListener(_onRegister);
   }
 
   @override
   void dispose() {
-    _usernameController.removeListener(_updateState);
-    _emailController.removeListener(_updateState);
-    _passwordController.removeListener(_updateState);
-    _confirmPasswordController.removeListener(_updateState);
-    _firstNameController.removeListener(_updateState);
-    _lastNameController.removeListener(_updateState);
-    _usernameController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
-    _firstNameController.dispose();
-    _lastNameController.dispose();
-    _dateOfBirthController.dispose();
+    widget.viewModel.register.removeListener(_onRegister);
     super.dispose();
   }
 
@@ -96,45 +80,44 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
+  // Private function to check if validator is good
   Future<void> _register() async {
     if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-        _error = null;
-      });
+      widget.viewModel.register.execute((
+      _usernameController.text,
+      _emailController.text,
+      _passwordController.text,
+      _firstNameController.text.isEmpty
+          ? null
+          : _firstNameController.text,
+      _lastNameController.text.isEmpty
+          ? null
+          : _lastNameController.text,
+      _dateOfBirth?.toIso8601String(),
+      ));
+    }
+  }
 
-      try {
-        final authResponse = await _authService.register(
-          _usernameController.text,
-          _emailController.text,
-          _passwordController.text,
-          firstName: _firstNameController.text.isEmpty
-              ? null
-              : _firstNameController.text,
-          lastName: _lastNameController.text.isEmpty
-              ? null
-              : _lastNameController.text,
-          dateOfBirth: _dateOfBirth?.toIso8601String(),
-        );
-
-        final user = await _authService.getUserByToken(authResponse.token);
-
-        if (!mounted) return;
-
-        Navigator.of(context).pushReplacement(
-          FadeRoute(page: HomeScreen(user: user)),
-        );
-      } catch (e) {
-        setState(() {
-          _error = e.toString();
-        });
-      } finally {
-        if (mounted) {
+  void _onRegister() {
+    if (widget.viewModel.register.completed) {
+      widget.viewModel.register.clearResult();
+      Navigator.push(
+        context,
+        FadeRoute(page: HomeScreen()),
+      );
+    }
+    if (widget.viewModel.register.error){
+      Result<dynamic> result = widget.viewModel.register.result!;
+      switch(result){
+        case Ok():
+          break;
+        case Error():
           setState(() {
-            _isLoading = false;
+            _error =result.error.toString().replaceFirst("Exception: ", "");;
           });
-        }
+          break;
       }
+      widget.viewModel.register.clearResult();
     }
   }
 
@@ -511,7 +494,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     const SizedBox(height: 24),
                     ElevatedButton.icon(
-                      onPressed: _isLoading ? null : _generateRandomUser,
+                      onPressed: widget.viewModel.register.running? null:_generateRandomUser,
                       icon: const Icon(Icons.auto_fix_high),
                       label: const Text('Generate Random User'),
                       style: ElevatedButton.styleFrom(
@@ -523,7 +506,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     SizedBox(
                       height: 42,
                       child: ElevatedButton(
-                        onPressed: _isLoading ? null : _register,
+                        onPressed: widget.viewModel.register.running ? null : _register,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF4CAF50),
                           foregroundColor: Colors.white,
@@ -532,8 +515,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           elevation: 0,
                         ),
-                        child: _isLoading
-                            ? const SizedBox(
+                        child: ListenableBuilder(
+                        listenable: widget.viewModel.register,
+                        builder: (context, child) {
+                          return widget.viewModel.register.running
+                          ?
+                               const SizedBox(
                                 height: 20,
                                 width: 20,
                                 child: CircularProgressIndicator(
@@ -542,13 +529,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       Colors.white70),
                                 ),
                               )
-                            : const Text(
-                                'Register',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                ),
+                          :
+                             const Text(
+                              'Register',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
                               ),
+                            );
+                        }),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -556,7 +545,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       onPressed: () {
                         Navigator.push(
                           context,
-                          FadeRoute(page: const LoginScreen()),
+                          FadeRoute(page: LoginScreen()),
                         );
                       },
                       style: TextButton.styleFrom(
