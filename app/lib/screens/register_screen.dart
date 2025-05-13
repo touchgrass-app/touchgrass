@@ -147,15 +147,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   String? _validateUserName(String? text) {
-    // regex for only upper,lowercase,'_',numbers
-    final _userNameRegex = RegExp(r'^[A-Za-z0-9_]+$');
+    // regex for atleast one letter and only numbers and underscores
+    final _userNameRegex = RegExp(r'^(?=.*[A-Za-z])[A-Za-z0-9_]+$');
     String _errorMessage = '';
 
     if (text == null || text.length < 3 ) {
       _errorMessage += 'text must be longer than 3 characters.\n';
     }
     if (!text!.contains(_userNameRegex)) {
-      _errorMessage += ' Username only takes letters, numbers and underscores\n';
+      _errorMessage += ' Username must contain atleast one letter\n'
+          ' and only numbers and underscores\n';
     }
     if (_errorMessage.isEmpty){
       return null; // successful validation
