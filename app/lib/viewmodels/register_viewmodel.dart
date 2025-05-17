@@ -33,10 +33,10 @@ class RegisterViewmodel extends ChangeNotifier {
       dateOfBirth: dateOfBirth
     );
     switch (result) {
-      case Ok<AuthResponse>():
+      case Ok():
         result = await _authService.login(username, password);
         break;
-      case Error<AuthResponse>():
+      case Error():
         break;
     }
     notifyListeners();
