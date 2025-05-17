@@ -24,23 +24,23 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    widget.viewModel.login.addListener(_onRegister);
+    widget.viewModel.login.addListener(_onLogin);
   }
 
   @override
   void didUpdateWidget(covariant LoginScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    oldWidget.viewModel.login.removeListener(_onRegister);
-    widget.viewModel.login.addListener(_onRegister);
+    oldWidget.viewModel.login.removeListener(_onLogin);
+    widget.viewModel.login.addListener(_onLogin);
   }
 
   @override
   void dispose() {
-    widget.viewModel.login.removeListener(_onRegister);
+    widget.viewModel.login.removeListener(_onLogin);
     super.dispose();
   }
 
-  void _onRegister() {
+  void _onLogin() {
     if (widget.viewModel.login.completed) {
       widget.viewModel.login.clearResult();
       Navigator.push(

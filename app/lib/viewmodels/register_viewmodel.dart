@@ -10,7 +10,6 @@ import '../core/utils/result.dart';
 class RegisterViewmodel extends ChangeNotifier {
   RegisterViewmodel(){
     register = Command1(_register);
-    // getUser = Command1(_getUser);
   }
 
   final AuthService _authService = AuthService();
@@ -25,7 +24,7 @@ class RegisterViewmodel extends ChangeNotifier {
   // private register function
   Future<Result> _register((String, String, String, String?, String?, String?) details) async {
     final (username, email, password, firstName, lastName, dateOfBirth) = details;
-    final result = await _authService.register(
+    var result = await _authService.register(
       username,
       email,
       password,
@@ -34,32 +33,15 @@ class RegisterViewmodel extends ChangeNotifier {
       dateOfBirth: dateOfBirth
     );
     switch (result) {
-      case Ok<AuthResponse>():
-        _authResponse = result.value;
-        _getUser(_authResponse!.token);
+      case Ok():
+        result = await _authService.login(username, password);
         break;
       case Error():
         break;
     }
     notifyListeners();
-    return result;
+  return result;
   }
 
-  // private user function
-  Future<Result> _getUser(String token,) async {
-    // final (token) = cred;
-    final result = await _authService.getUserByToken(
-      token,
-    );
-    switch (result) {
-      case Ok<User>():
-        _user = result.value;
-        break;
-      case Error():
-        break;
-    }
-    // notifyListeners(); // not needed anymore
-    return result;
-  }
 
 }
