@@ -7,8 +7,15 @@ import 'home_screen.dart';
 import 'login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
-  RegisterScreen({super.key});
-  final RegisterViewmodel viewModel = RegisterViewmodel();
+  // Make the viewModel parameter nullable and provide a default value
+  final RegisterViewmodel viewModel;
+  // Modify the constructor to take an optional viewModel
+  RegisterScreen({
+    Key? key,
+    RegisterViewmodel? viewModel, // Make it nullable
+  }) : viewModel = viewModel ?? RegisterViewmodel(), // Provide a default value
+        super(key: key);
+
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
 }
@@ -22,7 +29,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _confirmPasswordController = TextEditingController();
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
-  final _dateOfBirthController = TextEditingController();
   DateTime? _dateOfBirth;
   bool _showPassword = false;
   bool _showConfirmPassword = false;
@@ -79,92 +85,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
-  String? _validatePassword(String? text) {
-    String _errorMessage = '';
-    if (text == null || text.length < 6 ) {
-      _errorMessage += 'Password must be longer than 6 characters.\n';
-    }
-    // if (!text!.contains(RegExp(r'[A-Z]'))) {
-    //   _errorMessage += '• Uppercase letter is missing.\n';
-    // }
-    // if (!text.contains(RegExp(r'[a-z]'))) {
-    //   _errorMessage += '• Lowercase letter is missing.\n';
-    // }
-    // if (!text.contains(RegExp(r'[0-9]'))) {
-    //   _errorMessage += '• Digit is missing.\n';
-    // }
-    // if (!text.contains(RegExp(r'[!@#%^&*(),.?":{}|<>]'))) {
-    //   _errorMessage += '• Special character is missing.\n';
-    // }
-
-    if (_errorMessage.isEmpty){
-      return null; // successful validation
-    }
-    else{
-      return _errorMessage;
-    }
-  }
-
-  String? _validateEmail(String? text) {
-    // regex for email in format: first.last@subdomain.domain
-    final _emailRegex = RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#"
-    r"$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}"
-    r"[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}"
-    r"[a-zA-Z0-9])?)*$");
-    String _errorMessage = '';
-
-    if (text == null || text.length < 6 ) {
-      _errorMessage += 'Email must be longer than 6 characters.\n';
-    }
-    if (!text!.contains(_emailRegex)) {
-      _errorMessage += 'Email format error\n';
-    }
-    if (_errorMessage.isEmpty){
-      return null; // successful validation
-    }
-    else{
-      return _errorMessage;
-    }
-  }
-
-  String? _validateName(String? text) {
-    // regex for only uppercase,lowercase,'.','''. E.G Donald, O'Connor or J.Trump
-    final _nameRegex = RegExp(r"^\\s*([A-Za-z]{1,}([\\.,] |[-\']| ))+[A-Za-z]+\\.?\\s*$");
-    String _errorMessage = '';
-
-    if (text == null || text.length < 3 ) {
-      _errorMessage += 'Name must be longer than 3 characters.\n';
-    }
-    if (!text!.contains(_nameRegex)) {
-      _errorMessage += ' Name format error\n';
-    }
-    if (_errorMessage.isEmpty){
-      return null; // successful validation
-    }
-    else{
-      return _errorMessage;
-    }
-  }
-
-  String? _validateUserName(String? text) {
-    // regex for atleast one letter and only numbers and underscores
-    final _userNameRegex = RegExp(r'^(?=.*[A-Za-z])[A-Za-z0-9_]+$');
-    String _errorMessage = '';
-
-    if (text == null || text.length < 3 ) {
-      _errorMessage += 'text must be longer than 3 characters.\n';
-    }
-    if (!text!.contains(_userNameRegex)) {
-      _errorMessage += ' Username must contain atleast one letter\n'
-          ' and only numbers and underscores\n';
-    }
-    if (_errorMessage.isEmpty){
-      return null; // successful validation
-    }
-    else{
-      return _errorMessage;
-    }
-  }
 
   // Private function to check if validator is good
   Future<void> _register() async {
@@ -199,9 +119,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
           break;
         case Error():
           setState(() {
-            _error =result.error.toString().replaceFirst("Exception: ", "");;
+            _error =result.error.toString().replaceFirst("Exception: ", "");
           });
-          break;
       }
       widget.viewModel.register.clearResult();
     }
@@ -279,7 +198,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           floatingLabelBehavior: FloatingLabelBehavior.auto,
                         ),
-                        validator: (value) {return _validateUserName(value);},
+                        validator: (value) {return widget.viewModel.validateUserName(value);},
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -315,7 +234,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           floatingLabelBehavior: FloatingLabelBehavior.auto,
                         ),
                         keyboardType: TextInputType.emailAddress,
-                        validator: (value) {return _validateEmail(value);},
+                        validator: (value) {return widget.viewModel.validateEmail(value);},
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -365,7 +284,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           fontSize: 14,
                         ),
                         obscureText: !_showPassword,
-                        validator: (value) {return _validatePassword(value);},
+                        validator: (value) {return widget.viewModel.validatePassword(value);},
                       ),
                     ),
                     const SizedBox(height: 16),
