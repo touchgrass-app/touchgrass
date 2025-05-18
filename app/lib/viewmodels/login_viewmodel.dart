@@ -10,7 +10,6 @@ import '../core/utils/result.dart';
 class LoginViewmodel extends ChangeNotifier {
   LoginViewmodel() {
       login = Command1(_login);
-    // getUser = Command1(_getUser);
   }
 
 
@@ -22,8 +21,6 @@ class LoginViewmodel extends ChangeNotifier {
   User? get user => _user;
 
   late Command1<void, (String username, String password)> login;
-  // late Command1<void, String> getUser;
-  //final _log = Logger('LoginViewModel');
 
 
   // private login function
@@ -33,32 +30,7 @@ class LoginViewmodel extends ChangeNotifier {
     username,
     password,
     );
-    switch (result) {
-      case Ok<AuthResponse>():
-        _authResponse = result.value;
-        _getUser(_authResponse!.token);
-        break;
-      case Error():
-        break;
-    }
     notifyListeners();
-    return result;
-  }
-
-  // private user function
-  Future<Result> _getUser(String token,) async {
-    // final (token) = cred;
-    final result = await _authService.getUserByToken(
-      token,
-    );
-    switch (result) {
-      case Ok<User>():
-        _user = result.value;
-        break;
-      case Error():
-        break;
-    }
-    // notifyListeners(); // not needed anymore
     return result;
   }
 
