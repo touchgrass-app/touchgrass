@@ -173,6 +173,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: TextFormField(
+                        key: const ValueKey('UsernameField'),
                         controller: _usernameController,
                         style: const TextStyle(
                           color: Colors.white70,
@@ -208,6 +209,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: TextFormField(
+                        key: const ValueKey('EmailField'),
                         controller: _emailController,
                         style: const TextStyle(
                           color: Colors.white70,
@@ -244,6 +246,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: TextFormField(
+                        key: const ValueKey('PasswordField'),
                         controller: _passwordController,
                         decoration: InputDecoration(
                           labelText: 'Password',
@@ -294,6 +297,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: TextFormField(
+                        key: const ValueKey('ConfirmPasswordField'),
                         controller: _confirmPasswordController,
                         decoration: InputDecoration(
                           labelText: 'Confirm Password',
@@ -487,6 +491,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     SizedBox(
                       height: 42,
                       child: ElevatedButton(
+                        key: const ValueKey('RegisterButton'),
                         onPressed: widget.viewModel.register.running ? null : _register,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF4CAF50),
