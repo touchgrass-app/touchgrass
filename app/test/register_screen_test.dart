@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:touchgrass/core/services/auth_service.dart';
 import 'package:touchgrass/screens/register_screen.dart'; // Use the correct import path
 import 'package:touchgrass/viewmodels/register_viewmodel.dart'; // Use the correct import path
 import 'package:touchgrass/core/utils/result.dart'; // Use the correct import path
@@ -32,7 +30,7 @@ void main() {
     final password = find.byKey(const ValueKey('PasswordField'));
     final confirmPassword = find.byKey(const ValueKey('ConfirmPasswordField'));
     final registerButton = find.byKey(const ValueKey('RegisterButton'));
-    const testDetails = ("testuser123", "test.user@example.com", "password123", null, null, null);
+    // const testDetails = ("testuser123", "test.user@example.com", "password123", null, null, null);
 
 
     setUp(() {
