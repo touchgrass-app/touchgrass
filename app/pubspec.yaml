@@ -38,6 +38,8 @@ dependencies:
   flutter_dotenv: ^5.1.0  # For environment variables
   intl: ^0.18.1
   shared_preferences: ^2.2.2
+  mockito: ^5.4.2
+  build_runner: ^2.4.7
 
 dev_dependencies:
   flutter_test:

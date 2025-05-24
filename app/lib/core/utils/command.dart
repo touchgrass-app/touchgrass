@@ -1,5 +1,4 @@
 // This is an example of "util" code.
-// TODO: Make use of this instead of function object because its better practise.
 //  Why is it better practice? fuck knows.
 // Copyright 2024 The Flutter team. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be

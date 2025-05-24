@@ -7,8 +7,15 @@ import 'home_screen.dart';
 import 'login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
-  RegisterScreen({super.key});
-  final RegisterViewmodel viewModel = RegisterViewmodel();
+  // Make the viewModel parameter nullable and provide a default value
+  final RegisterViewmodel viewModel;
+  // Modify the constructor to take an optional viewModel
+  RegisterScreen({
+    Key? key,
+    RegisterViewmodel? viewModel, // Make it nullable
+  }) : viewModel = viewModel ?? RegisterViewmodel(), // Provide a default value
+        super(key: key);
+
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
 }
@@ -22,7 +29,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _confirmPasswordController = TextEditingController();
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
-  final _dateOfBirthController = TextEditingController();
   DateTime? _dateOfBirth;
   bool _showPassword = false;
   bool _showConfirmPassword = false;
@@ -50,7 +56,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final random = Random();
     final firstName = 'User${random.nextInt(1000)}';
     final lastName = 'Test${random.nextInt(1000)}';
-
     _usernameController.text =
         '${firstName.toLowerCase()}${random.nextInt(1000)}';
     _emailController.text = '${_usernameController.text}@example.com';
@@ -79,6 +84,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       });
     }
   }
+
 
   // Private function to check if validator is good
   Future<void> _register() async {
@@ -113,9 +119,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
           break;
         case Error():
           setState(() {
-            _error =result.error.toString().replaceFirst("Exception: ", "");;
+            _error =result.error.toString().replaceFirst("Exception: ", "");
           });
-          break;
       }
       widget.viewModel.register.clearResult();
     }
@@ -168,6 +173,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: TextFormField(
+                        key: const ValueKey('UsernameField'),
                         controller: _usernameController,
                         style: const TextStyle(
                           color: Colors.white70,
@@ -193,15 +199,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           floatingLabelBehavior: FloatingLabelBehavior.auto,
                         ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter a username';
-                          }
-                          if (value.length < 3) {
-                            return 'Username must be at least 3 characters';
-                          }
-                          return null;
-                        },
+                        validator: (value) {return widget.viewModel.validateUserName(value);},
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -211,6 +209,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: TextFormField(
+                        key: const ValueKey('EmailField'),
                         controller: _emailController,
                         style: const TextStyle(
                           color: Colors.white70,
@@ -237,15 +236,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           floatingLabelBehavior: FloatingLabelBehavior.auto,
                         ),
                         keyboardType: TextInputType.emailAddress,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter an email';
-                          }
-                          if (!value.contains('@')) {
-                            return 'Please enter a valid email';
-                          }
-                          return null;
-                        },
+                        validator: (value) {return widget.viewModel.validateEmail(value);},
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -255,6 +246,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: TextFormField(
+                        key: const ValueKey('PasswordField'),
                         controller: _passwordController,
                         decoration: InputDecoration(
                           labelText: 'Password',
@@ -295,15 +287,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           fontSize: 14,
                         ),
                         obscureText: !_showPassword,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter a password';
-                          }
-                          if (value.length < 6) {
-                            return 'Password must be at least 6 characters';
-                          }
-                          return null;
-                        },
+                        validator: (value) {return widget.viewModel.validatePassword(value);},
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -313,6 +297,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: TextFormField(
+                        key: const ValueKey('ConfirmPasswordField'),
                         controller: _confirmPasswordController,
                         decoration: InputDecoration(
                           labelText: 'Confirm Password',
@@ -506,6 +491,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     SizedBox(
                       height: 42,
                       child: ElevatedButton(
+                        key: const ValueKey('RegisterButton'),
                         onPressed: widget.viewModel.register.running ? null : _register,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF4CAF50),
