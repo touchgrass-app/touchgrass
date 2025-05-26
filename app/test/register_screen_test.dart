@@ -9,10 +9,10 @@ import 'package:touchgrass/core/utils/command.dart'; // Use the correct import p
 import 'register_screen_test.mocks.dart';
 
 // @GenerateMocks([RegisterViewmodel,Command1])
-@GenerateMocks([Command1])
+@GenerateMocks([Command0,Command1])
 class FakeRegisterViewmodel extends RegisterViewmodel {
   FakeRegisterViewmodel({
-    required Command1<void, (String, String, String, String?, String?, String?)> register
+    required Command0<void> register
   }): super(){
     this.register = register;
   }
@@ -24,7 +24,7 @@ void main() {
   {
     // late MockRegisterViewmodel viewModel;
     late FakeRegisterViewmodel viewModel;
-    late MockCommand1<void, (String, String, String, String?, String?, String?)> register;
+    late MockCommand0<void> register;
     final username = find.byKey(const ValueKey('UsernameField'));
     final email = find.byKey(const ValueKey('EmailField'));
     final password = find.byKey(const ValueKey('PasswordField'));
@@ -34,19 +34,11 @@ void main() {
 
 
     setUp(() {
-      register = MockCommand1();
+      register = MockCommand0();
       viewModel = FakeRegisterViewmodel(register: register);
 
-      // when(viewModel.register.execute(testDetails)).thenAnswer((_) async => <void>[]);
-      // when(viewModel.register.completed).thenReturn(true);
-      // when(viewModel.register.error).thenReturn(true);
-      // when(viewModel.register.clearResult()).thenReturn(null);
-      // when(viewModel.register).thenReturn(register);
-      // when(viewModel.validateUserName(any)).thenReturn(null);
-      // when(viewModel.validatePassword(any)).thenReturn(null);
-      // when(viewModel.validateEmail(any)).thenReturn(null);
-
-      when(register.execute(any)).thenAnswer((_) async => const Result.ok('success'));
+      // snub all the command options
+      when(register.execute()).thenAnswer((_) async => const Result.ok('success'));
       when(register.completed).thenReturn(true);
       when(register.error).thenReturn(false);
       when(register.running).thenReturn(false);
@@ -134,7 +126,7 @@ void main() {
       await tester.tap(registerButton);
       await tester.pumpAndSettle();
 
-      verify(register.execute(any)).called(1);
+      verify(register.execute()).called(1);
     });
 
     //TODO: Create multiple combinations of invalid input and test for each
@@ -159,7 +151,7 @@ void main() {
       await tester.tap(registerButton);
       await tester.pumpAndSettle();
 
-      verifyNever(register.execute(any));
+      verifyNever(register.execute());
     });
   });
 }

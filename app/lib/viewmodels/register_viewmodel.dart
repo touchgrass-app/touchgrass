@@ -1,5 +1,5 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
-//import 'package:logging/logging.dart';
 import '../models/user.dart';
 import '../core/services/auth_service.dart';
 import '../core/utils/command.dart';
@@ -9,8 +9,19 @@ import '../core/utils/result.dart';
 
 class RegisterViewmodel extends ChangeNotifier {
   RegisterViewmodel(){
-    register = Command1(_register);
+    register = Command0(_register);
   }
+  final formKey = GlobalKey<FormState>();
+  final usernameController = TextEditingController();
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
+  final firstNameController = TextEditingController();
+  final lastNameController = TextEditingController();
+  final dateTimeController = TextEditingController();
+  bool showPassword = false;
+  bool showConfirmPassword = false;
+  String? error;
 
   final AuthService _authService = AuthService();
   AuthResponse? _authResponse;
@@ -19,18 +30,19 @@ class RegisterViewmodel extends ChangeNotifier {
   AuthResponse? get authResponse => _authResponse;
   User? get user => _user;
 
-  late Command1<void, (String, String, String, String?, String?, String?)> register;
+  late Command0<void> register;
 
   // private register function
-  Future<Result> _register((String, String, String, String?, String?, String?) details) async {
-    final (username, email, password, firstName, lastName, dateOfBirth) = details;
+  Future<Result> _register() async {
+    String username = usernameController.text;
+    String password = passwordController.text;
     var result = await _authService.register(
-      username,
-      email,
-      password,
-      firstName: firstName,
-      lastName: lastName,
-      dateOfBirth: dateOfBirth
+      usernameController.text,
+      emailController.text,
+      passwordController.text,
+      firstName: firstNameController.text.isEmpty ? null : firstNameController.text,
+      lastName: lastNameController.text.isEmpty ? null : lastNameController.text,
+      dateOfBirth: dateTimeController.text
     );
     switch (result) {
       case Ok():
@@ -41,6 +53,22 @@ class RegisterViewmodel extends ChangeNotifier {
     }
     notifyListeners();
   return result;
+  }
+
+  void generateRandomUser() {
+    final random = Random();
+    final firstName = 'User${random.nextInt(1000)}';
+    final lastName = 'Test${random.nextInt(1000)}';
+    usernameController.text =
+    '${firstName.toLowerCase()}${random.nextInt(1000)}';
+    emailController.text = '${usernameController.text}@example.com';
+    passwordController.text = 'password';
+    confirmPasswordController.text = 'password';
+    firstNameController.text = firstName;
+    lastNameController.text = lastName;
+    final now = DateTime.now();
+    final randomDays = random.nextInt(365 * 62);
+    dateTimeController.text = now.subtract(Duration(days: 365 * 18 + randomDays)) as String;
   }
 
 
