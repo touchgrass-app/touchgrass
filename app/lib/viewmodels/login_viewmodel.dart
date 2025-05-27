@@ -9,9 +9,14 @@ import '../core/utils/result.dart';
 
 class LoginViewmodel extends ChangeNotifier {
   LoginViewmodel() {
-      login = Command1(_login);
+      login = Command0(_login);
   }
 
+  final formKey = GlobalKey<FormState>();
+  bool showPassword = false;
+  String? error;
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
 
   final AuthService _authService = AuthService();
   AuthResponse? _authResponse;
@@ -20,15 +25,14 @@ class LoginViewmodel extends ChangeNotifier {
   AuthResponse? get authResponse => _authResponse;
   User? get user => _user;
 
-  late Command1<void, (String username, String password)> login;
+  late Command0<void> login;
 
 
   // private login function
-  Future<Result> _login((String, String) cred) async {
-    final (username, password) = cred;
+  Future<Result> _login() async {
     final result = await _authService.login(
-    username,
-    password,
+    emailController.text,
+    passwordController.text,
     );
     notifyListeners();
     return result;
