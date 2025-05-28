@@ -22,18 +22,6 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
 
-  final _formKey = GlobalKey<FormState>();
-  final _usernameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
-  final _firstNameController = TextEditingController();
-  final _lastNameController = TextEditingController();
-  DateTime? _dateOfBirth;
-  bool _showPassword = false;
-  bool _showConfirmPassword = false;
-  String? _error;
-
   @override
   void initState() {
     super.initState();
@@ -52,58 +40,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  void _generateRandomUser() {
-    final random = Random();
-    final firstName = 'User${random.nextInt(1000)}';
-    final lastName = 'Test${random.nextInt(1000)}';
-    _usernameController.text =
-        '${firstName.toLowerCase()}${random.nextInt(1000)}';
-    _emailController.text = '${_usernameController.text}@example.com';
-    _passwordController.text = 'password';
-    _confirmPasswordController.text = 'password';
-    _firstNameController.text = firstName;
-    _lastNameController.text = lastName;
-
-    final now = DateTime.now();
-    final randomDays = random.nextInt(365 * 62);
-    _dateOfBirth = now.subtract(Duration(days: 365 * 18 + randomDays));
-
-    setState(() {});
-  }
-
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _dateOfBirth ?? DateTime.now(),
-      firstDate: DateTime(1900),
-      lastDate: DateTime.now(),
-    );
-    if (picked != null && picked != _dateOfBirth) {
-      setState(() {
-        _dateOfBirth = picked;
-      });
-    }
-  }
-
-
-  // Private function to check if validator is good
-  Future<void> _register() async {
-    if (_formKey.currentState!.validate()) {
-      widget.viewModel.register.execute((
-      _usernameController.text,
-      _emailController.text,
-      _passwordController.text,
-      _firstNameController.text.isEmpty
-          ? null
-          : _firstNameController.text,
-      _lastNameController.text.isEmpty
-          ? null
-          : _lastNameController.text,
-      _dateOfBirth?.toIso8601String(),
-      ));
-    }
-  }
-
   void _onRegister() {
     if (widget.viewModel.register.completed) {
       widget.viewModel.register.clearResult();
@@ -119,13 +55,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
           break;
         case Error():
           setState(() {
-            _error =result.error.toString().replaceFirst("Exception: ", "");
+            widget.viewModel.error =result.error.toString().replaceFirst("Exception: ", "");
           });
       }
       widget.viewModel.register.clearResult();
     }
   }
 
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null && '${picked.day}/${picked.month}/${picked.year}' != widget.viewModel.dateTimeController.text) {
+      setState(() {
+        widget.viewModel.dateTimeController.text = '${picked.day}/${picked.month}/${picked.year}';
+      });
+    }
+  }
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -137,7 +87,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               constraints: const BoxConstraints(maxWidth: 400),
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Form(
-                key: _formKey,
+                key: widget.viewModel.formKey,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -174,7 +124,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       child: TextFormField(
                         key: const ValueKey('UsernameField'),
-                        controller: _usernameController,
+                        controller: widget.viewModel.usernameController,
                         style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 14,
@@ -210,7 +160,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       child: TextFormField(
                         key: const ValueKey('EmailField'),
-                        controller: _emailController,
+                        controller: widget.viewModel.emailController,
                         style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 14,
@@ -247,7 +197,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       child: TextFormField(
                         key: const ValueKey('PasswordField'),
-                        controller: _passwordController,
+                        controller: widget.viewModel.passwordController,
                         decoration: InputDecoration(
                           labelText: 'Password',
                           labelStyle: const TextStyle(
@@ -264,7 +214,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           suffixIcon: IconButton(
                             icon: Icon(
-                              _showPassword
+                              widget.viewModel.showPassword
                                   ? Icons.visibility_off
                                   : Icons.visibility,
                               color: Colors.grey,
@@ -272,7 +222,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                             onPressed: () {
                               setState(() {
-                                _showPassword = !_showPassword;
+                                widget.viewModel.showPassword = !widget.viewModel.showPassword;
                               });
                             },
                           ),
@@ -286,7 +236,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           color: Colors.white70,
                           fontSize: 14,
                         ),
-                        obscureText: !_showPassword,
+                        obscureText: !widget.viewModel.showPassword,
                         validator: (value) {return widget.viewModel.validatePassword(value);},
                       ),
                     ),
@@ -298,7 +248,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       child: TextFormField(
                         key: const ValueKey('ConfirmPasswordField'),
-                        controller: _confirmPasswordController,
+                        controller: widget.viewModel.confirmPasswordController,
                         decoration: InputDecoration(
                           labelText: 'Confirm Password',
                           labelStyle: const TextStyle(
@@ -315,7 +265,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           suffixIcon: IconButton(
                             icon: Icon(
-                              _showConfirmPassword
+                              widget.viewModel.showConfirmPassword
                                   ? Icons.visibility_off
                                   : Icons.visibility,
                               color: Colors.grey,
@@ -323,7 +273,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                             onPressed: () {
                               setState(() {
-                                _showConfirmPassword = !_showConfirmPassword;
+                                widget.viewModel.showConfirmPassword = !widget.viewModel.showConfirmPassword;
                               });
                             },
                           ),
@@ -337,12 +287,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           color: Colors.white70,
                           fontSize: 14,
                         ),
-                        obscureText: !_showConfirmPassword,
+                        obscureText: !widget.viewModel.showConfirmPassword,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please confirm your password';
                           }
-                          if (value != _passwordController.text) {
+                          if (value != widget.viewModel.passwordController.text) {
                             return 'Passwords do not match';
                           }
                           return null;
@@ -356,7 +306,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: TextFormField(
-                        controller: _firstNameController,
+                        controller: widget.viewModel.firstNameController,
                         style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 14,
@@ -390,7 +340,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: TextFormField(
-                        controller: _lastNameController,
+                        controller: widget.viewModel.lastNameController,
                         style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 14,
@@ -426,11 +376,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       child: MouseRegion(
                         cursor: SystemMouseCursors.click,
                         child: TextFormField(
-                          controller: TextEditingController(
-                            text: _dateOfBirth == null
-                                ? ''
-                                : '${_dateOfBirth!.day}/${_dateOfBirth!.month}/${_dateOfBirth!.year}',
-                          ),
+                          controller: widget.viewModel.dateTimeController,
                           style: const TextStyle(
                             color: Colors.white70,
                             fontSize: 14,
@@ -461,7 +407,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    if (_error != null)
+                    if (widget.viewModel.error != null)
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
@@ -469,7 +415,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          _error!,
+                          widget.viewModel.error!,
                           style: TextStyle(
                             color: Colors.red.shade300,
                             fontSize: 12,
@@ -479,7 +425,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     const SizedBox(height: 24),
                     ElevatedButton.icon(
-                      onPressed: widget.viewModel.register.running? null:_generateRandomUser,
+                      onPressed: widget.viewModel.register.running? null : widget.viewModel.generateRandomUser,
                       icon: const Icon(Icons.auto_fix_high),
                       label: const Text('Generate Random User'),
                       style: ElevatedButton.styleFrom(
@@ -492,7 +438,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       height: 42,
                       child: ElevatedButton(
                         key: const ValueKey('RegisterButton'),
-                        onPressed: widget.viewModel.register.running ? null : _register,
+                        onPressed:() async {
+                          if (widget.viewModel.formKey.currentState!.validate()) {
+                            widget.viewModel.register.execute();
+                          }
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF4CAF50),
                           foregroundColor: Colors.white,

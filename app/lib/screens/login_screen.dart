@@ -6,20 +6,20 @@ import 'home_screen.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  LoginScreen({super.key});
 
-  final LoginViewmodel viewModel = LoginViewmodel();
+  final LoginViewmodel viewModel;
+
+  LoginScreen({
+    Key? key,
+    LoginViewmodel? viewModel, // Make it nullable
+  }) : viewModel = viewModel ?? LoginViewmodel(), // Provide a default value
+        super(key: key);
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _formKey = GlobalKey<FormState>();
-  bool _showPassword = false;
-  String? _error;
-  final TextEditingController _email = TextEditingController();
-  final TextEditingController _password = TextEditingController();
 
   @override
   void initState() {
@@ -55,7 +55,7 @@ class _LoginScreenState extends State<LoginScreen> {
           break;
         case Error():
           setState(() {
-            _error = result.error.toString().replaceFirst("Exception: ", "");;
+            widget.viewModel.error = result.error.toString().replaceFirst("Exception: ", "");
           });
           break;
       }
@@ -74,7 +74,7 @@ class _LoginScreenState extends State<LoginScreen> {
               constraints: const BoxConstraints(maxWidth: 400),
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Form(
-                key: _formKey,
+                key: widget.viewModel.formKey,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -110,12 +110,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: TextFormField(
+                        key: const ValueKey('EmailField'),
                         style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 14,
                         ),
                         decoration: const InputDecoration(
-                          labelText: 'Username or Email',
+                          labelText: 'Email',
                           labelStyle: TextStyle(
                             color: Colors.grey,
                             fontSize: 14,
@@ -133,10 +134,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             vertical: 12,
                           ),
                         ),
-                        controller: _email,
+                        controller: widget.viewModel.emailController,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter your username or email';
+                            return 'Please enter your email';
                           }
                           return null;
                         },
@@ -149,6 +150,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: TextFormField(
+                        key: const ValueKey('PasswordField'),
                         style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 14,
@@ -169,7 +171,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           suffixIcon: IconButton(
                             icon: Icon(
-                              _showPassword
+                              widget.viewModel.showPassword
                                   ? Icons.visibility_off
                                   : Icons.visibility,
                               color: Colors.grey,
@@ -177,7 +179,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             onPressed: () {
                               setState(() {
-                                _showPassword = !_showPassword;
+                                widget.viewModel.showPassword = !widget.viewModel.showPassword;
                               });
                             },
                           ),
@@ -186,8 +188,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             vertical: 12,
                           ),
                         ),
-                        obscureText: !_showPassword,
-                        controller: _password,
+                        obscureText: !widget.viewModel.showPassword,
+                        controller: widget.viewModel.passwordController,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Please enter your password';
@@ -197,7 +199,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    if (_error != null)
+                    if (widget.viewModel.error != null)
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
@@ -205,7 +207,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          _error!,
+                          widget.viewModel.error!,
                           style: TextStyle(
                             color: Colors.red.shade300,
                             fontSize: 12,
@@ -217,10 +219,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(
                       height: 42,
                       child: ElevatedButton(
-                        onPressed: () {
-                          if (_formKey.currentState!.validate()) {
-                            widget.viewModel.login.execute(
-                                (_email.value.text, _password.value.text));
+                        key: const ValueKey('LoginButton'),
+                        onPressed:() async {
+                          if (widget.viewModel.formKey.currentState!.validate()) {
+                            widget.viewModel.login.execute();
                           }
                         },
                         style: ElevatedButton.styleFrom(

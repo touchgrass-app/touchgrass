@@ -6,8 +6,12 @@ import '../widgets/posts/post.dart';
 import 'login_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  HomeScreen({super.key});
-  final HomeViewmodel viewModel = HomeViewmodel();
+  final HomeViewmodel viewModel;
+  HomeScreen({
+    Key? key,
+    HomeViewmodel? viewModel, // Make it nullable
+  }) : viewModel = viewModel ?? HomeViewmodel(), // Provide a default value
+        super(key: key);
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -80,6 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         actions: [
           IconButton(
+            key: const ValueKey('LogoutButton'),
             icon: const Icon(Icons.logout, color: Colors.white70),
             onPressed: () => widget.viewModel.logout.execute(),
           ),
